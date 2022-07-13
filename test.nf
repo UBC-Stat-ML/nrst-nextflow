@@ -1,10 +1,11 @@
-params {
-  gitUser     = 'UBC-Stat-ML'
-  gitRepoName = 'NRSTExp'
-}
+// repo information
+gitUser     = 'UBC-Stat-ML'
+gitRepoName = 'NRSTExp'
+
 workflow {
   build() | view
 }
+
 process setupRepo {  
   label 'local_job'
   output:
