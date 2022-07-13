@@ -4,7 +4,7 @@ gitRepoName    = 'NRSTExp'
 
 workflow {
   // run the process
-  setupPkg() | runExp
+  setupPkg() | runExp | view
 }
 
 process setupPkg {  
