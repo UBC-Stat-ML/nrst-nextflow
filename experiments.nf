@@ -1,7 +1,7 @@
 // parameters
 gitUser        = 'UBC-Stat-ML'
 gitRepoName    = 'NRSTExp'
-deliverableDir = 'deliverables/' + workflow.scriptName.replace('.nf','')
+deliverableDir = workflow.launchDir + '/deliverables'
 
 workflow {
   // define the grid of parameters over which to run the experiments
@@ -10,23 +10,23 @@ workflow {
   cors_ch = Channel.of(0.99)
 
   // run the process
-  ch_juliapath = setupRepo()
-  runExp(ch_juliapath, exps_ch, mods_ch, cors_ch)
+  code_ch = setupPkg()
+  runExp(code_ch, exps_ch, mods_ch, cors_ch)
 }
 
-process setupRepo {  
+process setupPkg {  
   label 'local_job'
   output:
-    path "$gitRepoName"
+    path 'code'
   script:
-    template 'installPkgAndUpdate.sh'
+    template 'cloneRepoAndSetupDepot.sh'
 }
 
 process runExp {
   label 'parallel_job'
   publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
-    path 'juliapath'
+    path code
     val exper
     val model
     val maxcor
@@ -34,6 +34,6 @@ process runExp {
     path '*.csv'
 
   """
-  julia --project=juliapath -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
+  JULIA_DEPOT_PATH=${code}/jldepot julia --project=${code}/${gitRepoName} -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
   """  
 }
