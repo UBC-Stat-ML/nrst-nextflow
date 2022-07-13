@@ -23,6 +23,6 @@ process runExp {
     stdout
 
   """
-  julia --project=juliapath -e "println('loading pkg...');using ${gitRepoName};println('pkg loaded')"
+  julia --project=juliapath -e 'println("loading pkg...");using NRSTExp;println("pkg loaded")'
   """  
 }
