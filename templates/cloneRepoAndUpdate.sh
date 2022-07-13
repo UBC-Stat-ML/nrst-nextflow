@@ -3,5 +3,5 @@
 set -e
 
 git clone git@github.com:${gitUser}/${gitRepoName}
-julia --project=${gitRepoName} -e "using Pkg; Pkg.update()"
+julia --project=${gitRepoName} -e "using Pkg; Pkg.update(); using ${gitRepoName}"
 
