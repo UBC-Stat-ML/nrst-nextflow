@@ -17,7 +17,6 @@ process setupRepo {
 
 process runExp {
   label 'parallel_job'
-  publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
     path 'juliapath'
   output:
