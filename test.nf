@@ -4,25 +4,25 @@ gitRepoName    = 'NRSTExp'
 
 workflow {
   // run the process
-  setupRepo() | runExp
+  setupPkg() | runExp
 }
 
-process setupRepo {  
+process setupPkg {  
   label 'local_job'
   output:
-    path "$gitRepoName"
+    val "$gitRepoName"
   script:
-    template 'cloneRepoAndUpdate.sh'
+    template 'installPkgAndUpdate.sh'
 }
 
 process runExp {
-  label 'parallel_job'
+  label 'local_job'
   input:
-    path 'juliapath'
+    val pkgName
   output:
     stdout
 
   """
-  julia --project=juliapath -e 'println("loading pkg...");using NRSTExp;println("pkg loaded")'
+  julia -e "println(\"loading pkg...\");using ${pkgName};println(\"pkg loaded\")"
   """  
 }

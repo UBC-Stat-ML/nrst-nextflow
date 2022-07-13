@@ -19,7 +19,7 @@ process setupRepo {
   output:
     path "$gitRepoName"
   script:
-    template 'cloneRepoAndUpdate.sh'
+    template 'installPkgAndUpdate.sh'
 }
 
 process runExp {
