@@ -34,6 +34,6 @@ process runExp {
     path '*.csv'
 
   """
-  JULIA_DEPOT_PATH=${code}/jldepot julia --project=${code}/${gitRepoName} -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
+  JULIA_DEPOT_PATH=${code}/jldepot julia -t auto --project=${code}/${gitRepoName} -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
   """  
 }
