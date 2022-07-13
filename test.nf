@@ -10,19 +10,19 @@ workflow {
 process setupPkg {  
   label 'local_job'
   output:
-    val "$gitRepoName"
+    path 'jldepot'
   script:
-    template 'installPkgAndUpdate.sh'
+    template 'cloneRepoAndSetupDepot.sh'
 }
 
 process runExp {
-  label 'local_job'
+  label 'parallel_job'
   input:
-    val pkgName
+    path jldepot
   output:
     stdout
 
   """
-  julia -e "println(\"loading pkg...\");using ${pkgName};println(\"pkg loaded\")"
+  JULIA_DEPOT_PATH=$jldepot julia --project=${gitRepoName} -e "println(\"loading pkg...\");using ${gitRepoName};println(\"pkg loaded\")"
   """  
 }
