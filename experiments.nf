@@ -10,7 +10,7 @@ workflow {
   cors_ch = Channel.of(0.99)
 
   // run the process
-  ch_juliapath = updateDeps()
+  ch_juliapath = setupRepo()
   runExp(ch_juliapath, exps_ch, mods_ch, cors_ch)
 }
 
