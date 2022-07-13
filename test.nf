@@ -9,7 +9,7 @@ workflow {
 process setupRepo {  
   label 'local_job'
   output:
-  path gitRepoName
+  path '$gitRepoName'
   script:
   template 'cloneRepoAndUpdate.sh'
 }
