@@ -3,7 +3,7 @@ gitUser     = 'UBC-Stat-ML'
 gitRepoName = 'NRSTExp'
 
 workflow {
-  build() | view
+  setupRepo() | view
 }
 
 process setupRepo {  
