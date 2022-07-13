@@ -34,6 +34,6 @@ process runExp {
     path '*.csv'
 
   """
-  julia --project=juliapath -e "using NRSTExp; dispatch()" $exper $model $maxcor
+  julia --project=juliapath -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
   """  
 }

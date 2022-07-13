@@ -1,9 +1,10 @@
-// repo information
-gitUser     = 'UBC-Stat-ML'
-gitRepoName = 'NRSTExp'
+// parameters
+gitUser        = 'UBC-Stat-ML'
+gitRepoName    = 'NRSTExp'
 
 workflow {
-  setupRepo() | view
+  // run the process
+  setupRepo() | runExp
 }
 
 process setupRepo {  
@@ -12,4 +13,17 @@ process setupRepo {
     path "$gitRepoName"
   script:
     template 'cloneRepoAndUpdate.sh'
+}
+
+process runExp {
+  label 'parallel_job'
+  publishDir deliverableDir, mode: 'copy', overwrite: true
+  input:
+    path 'juliapath'
+  output:
+    stdout
+
+  """
+  julia --project=juliapath -e "println('loading pkg...');using ${gitRepoName};println('pkg loaded')"
+  """  
 }
