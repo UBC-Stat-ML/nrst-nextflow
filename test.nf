@@ -10,7 +10,7 @@ workflow {
 process setupPkg {  
   label 'local_job'
   output:
-    path 'jldepot'
+    path 'code'
   script:
     template 'cloneRepoAndSetupDepot.sh'
 }
@@ -18,11 +18,11 @@ process setupPkg {
 process runExp {
   label 'parallel_job'
   input:
-    path jldepot
+    path code
   output:
     stdout
 
   """
-  JULIA_DEPOT_PATH=$jldepot julia --project=${gitRepoName} -e "using ${gitRepoName}"
+  JULIA_DEPOT_PATH=${code}/jldepot julia --project=${code}/${gitRepoName} -e "using ${gitRepoName}; using InteractiveUtils; versioninfo()"
   """  
 }
