@@ -23,6 +23,6 @@ process runExp {
     stdout
 
   """
-  JULIA_DEPOT_PATH=$jldepot julia --project=${gitRepoName} -e "println(\"loading pkg...\");using ${gitRepoName};println(\"pkg loaded\")"
+  JULIA_DEPOT_PATH=$jldepot julia --project=${gitRepoName} -e "using ${gitRepoName}"
   """  
 }
