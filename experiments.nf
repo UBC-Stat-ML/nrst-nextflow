@@ -1,6 +1,8 @@
+// parameters
+gitUser        = 'UBC-Stat-ML'
+gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/' + workflow.scriptName.replace('.nf','')
 
-// note: must be launched from the (.+)Exp pkg base dir
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('ess_versus_cost')
@@ -12,14 +14,12 @@ workflow {
   runExp(ch_juliapath, exps_ch, mods_ch, cors_ch)
 }
 
-process updateDeps {  
+process setupRepo {  
   label 'local_job'
   output:
-  path workflow.launchDir
-
-  """
-  julia --project -e "using Pkg; Pkg.update()"
-  """  
+    path "$gitRepoName"
+  script:
+    template 'cloneRepoAndUpdate.sh'
 }
 
 process runExp {
