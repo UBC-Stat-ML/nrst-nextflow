@@ -12,7 +12,6 @@ for(fn in csvs){
   newdta = read.csv(file.path(outdir,fn))
   sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv$')
   dta = newdta %>%
-    rename(proc=model) %>% 
     mutate(
       exper = sm[2],
       model = sm[3],
