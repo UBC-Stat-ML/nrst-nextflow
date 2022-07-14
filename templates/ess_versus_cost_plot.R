@@ -8,11 +8,11 @@ library(tidyr)
 
 # search for csv files and process them
 resdir = "${outdir}"
-csvs = list.files(resdir, pattern = '.csv\$') # need to escape `$`s for nextflow
+csvs = list.files(resdir, pattern = '.csv\$') # need to escape dollars for nextflow
 dta = data.frame()
 for(fn in csvs){
   newdta = read.csv(file.path(resdir,fn))
-  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv\$') # need to escape `$`s for nextflow
+  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv\$') # need to escape dollars for nextflow
   dta = newdta %>%
     rename(proc=model) %>% 
     mutate(
