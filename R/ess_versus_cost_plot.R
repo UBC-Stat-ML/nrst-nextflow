@@ -1,5 +1,3 @@
-#!/usr/bin/env Rscript
-  
 library(dplyr)
 library(ggplot2)
 library(scales)
@@ -7,12 +5,12 @@ library(stringr)
 library(tidyr)
 
 # search for csv files and process them
-resdir = "${outdir}"
-csvs = list.files(resdir, pattern = '.csv\$') # need to escape dollars for nextflow
+outdir = Sys.getenv("OUTDIR")
+csvs = list.files(outdir, pattern = '.csv$')
 dta = data.frame()
 for(fn in csvs){
-  newdta = read.csv(file.path(resdir,fn))
-  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv\$') # need to escape dollars for nextflow
+  newdta = read.csv(file.path(outdir,fn))
+  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv$')
   dta = newdta %>%
     rename(proc=model) %>% 
     mutate(
@@ -57,5 +55,5 @@ plt = pltdta %>%
     x = "Computational cost",
     y = "ESS bound @ cold level"
   )
-ggsave("ess_versus_cost_par.pdf", plot=plt, width=7.5, height=4.25)
+ggsave("ess_versus_cost.pdf", plot=plt, width=7.5, height=4.25)
 

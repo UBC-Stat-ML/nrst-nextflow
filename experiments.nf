@@ -2,6 +2,7 @@
 gitUser        = 'UBC-Stat-ML'
 gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/'
+rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
 workflow {
   // define the grid of parameters over which to run the experiments
@@ -12,7 +13,7 @@ workflow {
   // run the process
   code_ch = setupPkg()
   out_ch  = runExp(code_ch, exps_ch, mods_ch, cors_ch)
-  makePlots(out_ch) | view
+  makePlots(out_ch, rScriptsDir_ch) | view
 }
 
 process setupPkg {  
@@ -47,9 +48,11 @@ process makePlots {
   publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
     path outdir
+    path Rscdir
   output:
     path '*.pdf'
-  script:
-    template 'ess_versus_cost_plot.R'
+  """
+  OUTDIR=${outdir} Rscript ${Rscdir}/ess_versus_cost_plot.R
+  """
 }
 
