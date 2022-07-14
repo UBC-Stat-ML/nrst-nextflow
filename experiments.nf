@@ -52,7 +52,7 @@ process makePlots {
     path '*.pdf'
 
   """
-  OUTDIR=${outdir} Rscript ${R_scripts_dir}/ess_versus_cost_plot.R
+  OUTDIR=${outdir} Rscript ${R_scripts_dir}ess_versus_cost_plot.R
   """  
 }
 
