@@ -1,7 +1,7 @@
 // parameters
 gitUser        = 'UBC-Stat-ML'
 gitRepoName    = 'NRSTExp'
-deliverableDir = 'deliverables/' //workflow.launchDir + '/deliverables'
+deliverableDir = 'deliverables/'
 R_scripts_dir  = 'R/'
 
 workflow {
