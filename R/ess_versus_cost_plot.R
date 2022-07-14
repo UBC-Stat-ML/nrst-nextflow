@@ -54,5 +54,5 @@ plt = pltdta %>%
     x = "Computational cost",
     y = "ESS bound @ cold level"
   )
-ggsave("ess_versus_cost.pdf", plot=plt, width=7.5, height=4.25)
+ggsave("ess_versus_cost.pdf", plot=plt, width=5*length(unique(pltdta$model)), height=3.5)
 
