@@ -2,7 +2,6 @@
 gitUser        = 'UBC-Stat-ML'
 gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/'
-R_scripts_dir  = 'R/'
 
 workflow {
   // define the grid of parameters over which to run the experiments
@@ -50,9 +49,7 @@ process makePlots {
     path outdir
   output:
     path '*.pdf'
-
-  """
-  OUTDIR=${outdir} Rscript ${R_scripts_dir}ess_versus_cost_plot.R
-  """  
+  script:
+    template 'ess_versus_cost_plot.R'
 }
 

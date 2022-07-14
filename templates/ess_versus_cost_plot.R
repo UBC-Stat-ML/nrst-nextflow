@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+  
 library(dplyr)
 library(ggplot2)
 library(scales)
@@ -5,12 +7,12 @@ library(stringr)
 library(tidyr)
 
 # search for csv files and process them
-outdir = Sys.getenv("OUTDIR")
-csvs = list.files(outdir, pattern = ".csv$")
+resdir = ${outdir}
+csvs = list.files(resdir, pattern = '.csv$')
 dta = data.frame()
 for(fn in csvs){
-  newdta = read.csv(file.path(outdir,fn))
-  sm = str_match(fn, "^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv$")
+  newdta = read.csv(file.path(resdir,fn))
+  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv$')
   dta = newdta %>%
     rename(proc=model) %>% 
     mutate(
