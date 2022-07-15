@@ -4,14 +4,15 @@ gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/'
 rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
-// define the grid of parameters over which to run the experiments
-exps_ch = Channel.of('ess_versus_cost')
-mods_ch = Channel.of('MvNormal', 'XYModel', 'HierarchicalModel')
-cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
-
 workflow {
+  // define the grid of parameters over which to run the experiments
+  exps_ch = Channel.of('ess_versus_cost')
+  mods_ch = Channel.of('MvNormal', 'XYModel', 'HierarchicalModel')
+  cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
+  
+  // run process
   code_ch = setupPkg()
-  out_ch  = runExp(code_ch)
+  out_ch  = runExp(code_ch, exps_ch, mods_ch, cors_ch)
   makePlots(out_ch, rScriptsDir_ch) | view
 }
 
@@ -27,9 +28,9 @@ process runExp {
   label 'parallel_job'
   input:
     path code
-    each exper of exps_ch
-    each model of mods_ch
-    each maxcor of cors_ch
+    each exper
+    each model
+    each maxcor
   output:
     path 'output'
 
@@ -39,7 +40,7 @@ process runExp {
   """  
 }
 
-// TODO: should dispatch one job for each different experiment
+// TODO: should dispatch one job for each different experiment, with different script
 // perhaps runExp should produce one folder per experiment inside output dir?
 process makePlots {
   label 'parallel_job'
