@@ -7,5 +7,4 @@ Pkg.add(
   ]
 )
 Pkg.precompile(strict=true)
-using NRSTExp
 
