@@ -4,13 +4,12 @@ gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/'
 rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
-workflow {
-  // define the grid of parameters over which to run the experiments
-  exps_ch = Channel.of('ess_versus_cost')
-  mods_ch = Channel.of('MvNormal', 'XYModel', 'HierarchicalModel')
-  cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
+// define the grid of parameters over which to run the experiments
+exps_ch = Channel.of('ess_versus_cost')
+mods_ch = Channel.of('MvNormal', 'XYModel', 'HierarchicalModel')
+cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
 
-  // run the process
+workflow {
   code_ch = setupPkg()
   out_ch  = runExp(code_ch, exps_ch, mods_ch, cors_ch)
   makePlots(out_ch, rScriptsDir_ch) | view
