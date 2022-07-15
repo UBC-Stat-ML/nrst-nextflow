@@ -1,26 +1,18 @@
-deliverableDir = 'deliverables/'
+jlScriptsDir_ch= Channel.fromPath('jl', type: 'dir')
 
 workflow {
-  makePlots | view
+  setupJlEnv(jlScriptsDir_ch) | view
 }
 
-process makePlots {
-  label 'parallel_job'
-  conda 'r r-dplyr r-ggplot2 r-scales r-stringr r-tidyr'
-  publishDir deliverableDir, mode: 'copy', overwrite: true
+process setupJlEnv {  
+  label 'local_job'
+    input:
+    path jlscdir
   output:
-    path '*.pdf'
-
+    path 'jldepot'
+  
   """
-  #!/usr/bin/env Rscript
-  library(dplyr)
-  library(ggplot2)
-  library(scales)
-  library(stringr)
-  library(tidyr)
-
-  plt = ggplot(mpg, aes(displ, hwy, colour = class)) + 
-    geom_point()
-  ggsave("mpg.pdf", plot=plt)
+  mkdir jldepot
+  JULIA_DEPOT_PATH=jldepot julia ${jlscdir}/set_up_env.jl
   """
 }

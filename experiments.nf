@@ -1,7 +1,6 @@
 // parameters
-gitUser        = 'UBC-Stat-ML'
-gitRepoName    = 'NRSTExp'
 deliverableDir = 'deliverables/'
+jlScriptsDir_ch= Channel.fromPath('jl', type: 'dir')
 rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
 workflow {
@@ -11,23 +10,28 @@ workflow {
   cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
   
   // run process
-  code_ch = setupPkg()
-  out_ch  = runExp(code_ch, exps_ch, mods_ch, cors_ch)
+  jldep_ch = setupPkg(jlScriptsDir_ch)
+  out_ch   = runExp(jldep_ch, exps_ch, mods_ch, cors_ch)
   makePlots(out_ch, rScriptsDir_ch) | view
 }
 
-process setupPkg {  
+process setupJlEnv {  
   label 'local_job'
+    input:
+    path jlscdir
   output:
-    path 'code'
-  script:
-    template 'cloneRepoAndSetupDepot.sh'
+    path 'jldepot'
+  
+  """
+  mkdir jldepot
+  JULIA_DEPOT_PATH=jldepot julia ${jlscdir}/set_up_env.jl
+  """
 }
 
 process runExp {
   label 'parallel_job'
   input:
-    path code
+    path jldepot
     each exper
     each model
     each maxcor
@@ -35,8 +39,8 @@ process runExp {
     path 'output'
 
   """
-  JULIA_DEPOT_PATH=${code}/jldepot julia -t auto --project=${code}/${gitRepoName} \
-      -e "using ${gitRepoName}; dispatch()" $exper $model $maxcor
+  JULIA_DEPOT_PATH=${jldepot} julia -t auto \
+      -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """  
 }
 
