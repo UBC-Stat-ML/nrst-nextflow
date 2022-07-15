@@ -6,12 +6,12 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('ess_versus_cost')
-  mods_ch = Channel.of('MvNormal', 'XYModel', 'HierarchicalModel')
+  mods_ch = Channel.of('MvNormal')//, 'XYModel', 'HierarchicalModel')
   cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
   
   // run process
-  jldep_ch = setupJlEnv(jlScriptsDir_ch)
-  out_ch   = runExp(jldep_ch, exps_ch, mods_ch, cors_ch)
+  done_ch  = setupJlEnv(jlScriptsDir_ch)
+  out_ch   = runExp(done_ch, exps_ch, mods_ch, cors_ch)
   makePlots(out_ch, rScriptsDir_ch) | view
 }
 
@@ -20,19 +20,17 @@ process setupJlEnv {
     input:
     path jlscdir
   output:
-    path 'jldepot'
+    val true
   
   """
-  mkdir jldepot
-  JULIA_DEPOT_PATH=jldepot julia ${jlscdir}/set_up_env.jl
-  JULIA_DEPOT_PATH=jldepot julia -e "using NRSTExp"
+  julia ${jlscdir}/set_up_env.jl
   """
 }
 
 process runExp {
   label 'parallel_job'
   input:
-    path jldepot
+    val done
     each exper
     each model
     each maxcor
@@ -40,9 +38,10 @@ process runExp {
     path 'output'
 
   """
-  JULIA_DEPOT_PATH=${jldepot} julia -t auto \
+  # disable cache to avoid race conditions in writing to it: https://discourse.julialang.org/t/precompilation-error-using-hpc/17094/3
+  julia --compilecache=no -t auto \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
-  """  
+  """
 }
 
 // TODO: should dispatch one job for each different experiment, with different script
