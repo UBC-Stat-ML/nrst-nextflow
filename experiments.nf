@@ -27,9 +27,9 @@ process runExp {
   label 'parallel_job'
   input:
     path code
-    each exper from exps_ch
-    each model from mods_ch
-    each maxcor from cors_ch
+    each exper of exps_ch
+    each model of mods_ch
+    each maxcor of cors_ch
   output:
     path 'output'
 
