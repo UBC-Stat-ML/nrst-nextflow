@@ -39,7 +39,8 @@ process runExp {
 
   """
   # disable cache to avoid race conditions in writing to it: https://discourse.julialang.org/t/precompilation-error-using-hpc/17094/3
-  julia --compilecache=no -t auto \
+  # name of that option changed: https://github.com/JuliaLang/julia/issues/23054 
+  julia --compiled-modules=no -t auto \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """
 }
