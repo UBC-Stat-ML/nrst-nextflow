@@ -11,7 +11,7 @@ cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
 
 workflow {
   code_ch = setupPkg()
-  out_ch  = runExp(code_ch, exps_ch, mods_ch, cors_ch)
+  out_ch  = runExp(code_ch)
   makePlots(out_ch, rScriptsDir_ch) | view
 }
 
