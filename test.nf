@@ -1,19 +1,20 @@
-jlScriptsDir_ch= Channel.fromPath('jl', type: 'dir')
-
 workflow {
-  setupJlEnv(jlScriptsDir_ch) | view
+  Channel.of(1..7) \
+    | mkFiles \
+    | collect \
+    | view
 }
 
-process setupJlEnv {  
-  label 'local_job'
-    input:
-    path jlscdir
+process mkFiles {  
+  label 'parallel_job'
+  input:
+    each id
   output:
-    path 'jldepot'
+    path 'output'
   
   """
-  mkdir jldepot
-  JULIA_DEPOT_PATH=jldepot julia ${jlscdir}/set_up_env.jl
-  JULIA_DEPOT_PATH=jldepot julia -e "using NRSTExp"
+  mkdir output
+  touch output/${id}_samples.csv
+  touch output/${id}_metadata.tsv
   """
 }

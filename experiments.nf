@@ -45,6 +45,9 @@ process runExp {
   """
 }
 
+// TODO: need to place all the csv file in the same folder before continuing!!
+// this probably means a trivial local job that executes "each outdir" from the runExp channel
+
 // TODO: should dispatch one job for each different experiment, with different script
 // perhaps runExp should produce one folder per experiment inside output dir?
 process makePlots {
