@@ -1,7 +1,7 @@
 workflow {
   Channel.of(1..7) \
     | mkFiles \
-    | collect \
+    //| collect \
     | view
 }
 
@@ -10,11 +10,10 @@ process mkFiles {
   input:
     each id
   output:
-    path 'output'
+    path '*.*'
   
   """
-  mkdir output
-  touch output/${id}_samples.csv
-  touch output/${id}_metadata.tsv
+  touch ${id}_samples.csv
+  touch ${id}_metadata.tsv
   """
 }
