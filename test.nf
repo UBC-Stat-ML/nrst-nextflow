@@ -23,6 +23,8 @@ process countFiles {
   label 'local_job'
   input:
     path '*.*'
+  output:
+    stdout
   
   """
   ls -1 *.csv| wc -l
