@@ -2,6 +2,7 @@ workflow {
   Channel.of(1..7) \
     | mkFiles \
     | collect \
+    | countFiles \
     | view
 }
 
