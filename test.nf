@@ -30,5 +30,6 @@ process countFiles {
   ls -1 *.csv| wc -l
   ls -1 *.tsv| wc -l
   ls -1 | wc -l
+  ls -1
   """
 }
