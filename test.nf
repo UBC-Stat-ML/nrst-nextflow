@@ -22,7 +22,7 @@ process mkFiles {
 process countFiles {  
   label 'local_job'
   input:
-    path '*.*'
+    path all
   output:
     stdout
   
@@ -30,6 +30,6 @@ process countFiles {
   ls -1 *.csv| wc -l
   ls -1 *.tsv| wc -l
   ls -1 | wc -l
-  ls -1
+  ls -alt
   """
 }
