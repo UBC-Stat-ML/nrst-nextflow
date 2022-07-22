@@ -20,7 +20,7 @@ process mkFiles {
 }
 
 process countFiles {  
-  label 'local_job'
+  label 'parallel_job'
   input:
     path all
   output:
