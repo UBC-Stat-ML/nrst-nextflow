@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - r-base
+  - r-base=4.1.*
   - r-dplyr
   - r-ggplot2
   - r-scales

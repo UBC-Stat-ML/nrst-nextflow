@@ -17,7 +17,8 @@ workflow {
 
 process setupJlEnv {  
   label 'local_job'
-    input:
+  conda 'conda-jl-env.yml'
+  input:
     path jlscdir
   output:
     val true
@@ -29,6 +30,7 @@ process setupJlEnv {
 
 process runExp {
   label 'parallel_job'
+  conda 'conda-jl-env.yml'
   input:
     val done
     each exper
@@ -56,7 +58,6 @@ process makePlots {
   output:
     path '*.pdf'
   """
-  ls -alt
   Rscript ${Rscdir}/ess_versus_cost_plot.R
   """
 }

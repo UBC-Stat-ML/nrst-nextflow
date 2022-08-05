@@ -1,0 +1,7 @@
+name: conda-jl-env
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - julia=1.7.3
+
