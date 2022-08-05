@@ -1,0 +1,10 @@
+name: conda-r-env
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - r-base
+  - r-dplyr
+  - r-ggplot2
+  - r-scales
+  - r-tidyr

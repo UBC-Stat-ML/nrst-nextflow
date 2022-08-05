@@ -48,7 +48,7 @@ process runExp {
 // TODO: should dispatch one job for each different experiment, with different script
 process makePlots {
   label 'parallel_job'
-  conda 'r-base r-dplyr r-ggplot2 r-scales r-tidyr'
+  conda 'conda-r-env.yml'
   publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
     path allfiles
