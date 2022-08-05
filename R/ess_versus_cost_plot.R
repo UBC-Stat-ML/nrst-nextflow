@@ -1,3 +1,6 @@
+# TODO: first load metadata to check if exper=ess_versus_cost and then load, 
+# otherwise discard and continue
+
 library(dplyr)
 library(ggplot2)
 library(scales)
@@ -5,19 +8,23 @@ library(stringr)
 library(tidyr)
 
 # search for csv files and process them
-outdir = Sys.getenv("OUTDIR")
-csvs = list.files(outdir, pattern = '.csv$')
-dta = data.frame()
-for(fn in csvs){
-  newdta = read.csv(file.path(outdir,fn))
-  sm = str_match(fn, '^E:(\\w+)_M:(\\w+)_MC:([.\\d]+)\\.csv$')
-  dta = newdta %>%
-    mutate(
-      exper = sm[2],
-      model = sm[3],
-      maxcor= as.numeric(sm[4])
-    ) %>% 
-    bind_rows(dta)
+tsvs = list.files(pattern = '.tsv$')
+fns  = substr(tsvs, 1, nchar(tsvs)-4)
+dta  = data.frame()
+for(i in seq_along(fns)){
+  #i=1
+  rawmeta     = read.delim(tsvs[i], header = FALSE)
+  meta        = as.data.frame(t(rawmeta[,-1]))
+  names(meta) = rawmeta[,1]
+  if(meta$exper == "ess_versus_cost"){
+    newdta = read.csv(paste0(fns[i], ".csv"))
+    dta    = newdta %>%
+      mutate(
+        model = meta$model,
+        maxcor= as.numeric(meta$maxcor)
+      ) %>% 
+      bind_rows(dta)
+  }
 }
 
 #######################################

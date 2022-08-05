@@ -12,4 +12,11 @@
 work
 links
 .Rhistory
-
+*.Rproj
+.Rproj.user
+*.pdf
+*.csv
+*.tsv
+!deliverables/**/*.pdf
+!deliverables/**/*.csv
+!deliverables/**/*.tsv
