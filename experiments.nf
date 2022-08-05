@@ -12,7 +12,7 @@ workflow {
   // run process
   done_ch  = setupJlEnv(jlScriptsDir_ch)
   files_ch = runExp(done_ch, exps_ch, mods_ch, cors_ch)
-  makePlots(files_ch, rScriptsDir_ch) | view
+  makePlots(files_ch.collect(), rScriptsDir_ch) | view
 }
 
 process setupJlEnv {  
