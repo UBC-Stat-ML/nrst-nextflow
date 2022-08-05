@@ -1,35 +1,20 @@
+jlScriptsDir_ch= Channel.fromPath('jl', type: 'dir')
 workflow {
-  Channel.of(1..7) \
-    | mkFiles \
-    | collect \
-    | countFiles \
+  jlScriptsDir_ch \
+    | setupJlEnv \
     | view
 }
 
-process mkFiles {  
-  label 'parallel_job'
+process setupJlEnv {  
+  label 'local_job'
+  conda 'conda-jl-env.yml'
   input:
-    each id
+    path jlscdir
   output:
-    path '*.*'
+    val true
   
   """
-  touch ${id}_samples.csv
-  touch ${id}_metadata.tsv
+  julia ${jlscdir}/set_up_env.jl
   """
 }
 
-process countFiles {  
-  label 'parallel_job'
-  input:
-    path all
-  output:
-    stdout
-  
-  """
-  ls -1 *.csv| wc -l
-  ls -1 *.tsv| wc -l
-  ls -1 | wc -l
-  ls -alt
-  """
-}
