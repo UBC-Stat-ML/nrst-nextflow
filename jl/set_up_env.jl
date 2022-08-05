@@ -6,5 +6,5 @@ Pkg.add(
     Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRSTExp.git")
   ]
 )
-Pkg.precompile(strict=true)
+Pkg.precompile()
 
