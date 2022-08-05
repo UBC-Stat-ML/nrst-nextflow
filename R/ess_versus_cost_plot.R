@@ -47,7 +47,7 @@ plt = pltdta %>%
   scale_y_continuous(labels = math_format())+
   scale_colour_viridis_d(name="Max. Corr.") +
   scale_fill_viridis_d(name="Max. Corr.") +
-  facet_wrap(~model) +
+  facet_wrap(~model, nrow = 1L) +
   theme_bw() + 
   theme(
     # text             = element_text(size = 10),
