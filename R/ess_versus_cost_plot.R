@@ -1,14 +1,11 @@
-# TODO: first load metadata to check if exper=ess_versus_cost and then load, 
-# otherwise discard and continue
-
 library(dplyr)
 library(ggplot2)
 library(scales)
-library(stringr)
 library(tidyr)
 
 # search for csv files and process them
-tsvs = list.files(pattern = '.tsv$')
+tsvs = list.files(pattern = '^NRSTExp_\\d+.tsv$')
+cat("Found metadata:\n"); print(tsvs)
 fns  = substr(tsvs, 1, nchar(tsvs)-4)
 dta  = data.frame()
 for(i in seq_along(fns)){
