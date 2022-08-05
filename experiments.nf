@@ -7,12 +7,12 @@ workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('ess_versus_cost')
   mods_ch = Channel.of('MvNormal')//, 'XYModel', 'HierarchicalModel')
-  cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99)
+  cors_ch = Channel.of(0.9, 0.99)//0.01, 0.1, 0.25, 0.5, 0.75,
   
   // run process
-  done_ch = setupJlEnv(jlScriptsDir_ch)
-  out_ch  = runExp(done_ch, exps_ch, mods_ch, cors_ch)
-  makePlots(out_ch, rScriptsDir_ch) | view
+  done_ch  = setupJlEnv(jlScriptsDir_ch)
+  files_ch = runExp(done_ch, exps_ch, mods_ch, cors_ch)
+  makePlots(files_ch, rScriptsDir_ch) | view
 }
 
 process setupJlEnv {  
@@ -46,10 +46,9 @@ process runExp {
 }
 
 // TODO: should dispatch one job for each different experiment, with different script
-// perhaps runExp should produce one folder per experiment inside output dir?
 process makePlots {
   label 'parallel_job'
-  conda 'r r-dplyr r-ggplot2 r-scales r-stringr r-tidyr'
+  conda 'r r-dplyr r-ggplot2 r-scales r-tidyr'
   publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
     path allfiles
