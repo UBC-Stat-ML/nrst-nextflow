@@ -32,8 +32,7 @@ for(i in seq_along(fns)){
 #######################################
 
 pltdta = dta %>%
-  filter(exper == "ess_versus_cost") %>% 
-  select(-c(xs, exper)) %>% 
+  select(-xs) %>% 
   rename(cost=xp,ess=y)
 pltdta = bind_rows(
   pltdta %>% filter(proc=="NRST"),
