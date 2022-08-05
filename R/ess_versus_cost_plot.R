@@ -7,17 +7,12 @@ sessionInfo()
 
 # search for csv files and process them
 tsvs = list.files(pattern = '^NRSTExp_\\d+.tsv$')
-cat("Found metadata:\n"); print(tsvs)
 fns  = substr(tsvs, 1, nchar(tsvs)-4)
 dta  = data.frame()
 for(i in seq_along(fns)){
   #i=1
   rawmeta     = read.delim(tsvs[i], header = FALSE)
-  cat("debug\n");print(rawmeta)
   meta        = as.data.frame(t(rawmeta[,-1]))
-  cat("debug\n");print(meta)
-  cat("debug\n");print(names(meta))
-  cat("debug\n");print(rawmeta[, 1])
   names(meta) = rawmeta[, 1]
   if(meta$exper == "ess_versus_cost"){
     newdta = read.csv(paste0(fns[i], ".csv"))
