@@ -56,6 +56,7 @@ process makePlots {
   output:
     path '*.pdf'
   """
+  ls -alt
   Rscript ${Rscdir}/ess_versus_cost_plot.R
   """
 }
