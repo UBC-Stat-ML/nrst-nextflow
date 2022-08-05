@@ -13,6 +13,8 @@ for(i in seq_along(fns)){
   rawmeta     = read.delim(tsvs[i], header = FALSE)
   cat("debug\n");print(rawmeta)
   meta        = as.data.frame(t(rawmeta[,-1]))
+  cat("debug\n");print(names(meta))
+  cat("debug\n");print(rawmeta[, 1])
   names(meta) = rawmeta[, 1]
   if(meta$exper == "ess_versus_cost"){
     newdta = read.csv(paste0(fns[i], ".csv"))
