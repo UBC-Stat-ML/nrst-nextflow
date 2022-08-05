@@ -3,8 +3,6 @@ library(ggplot2)
 library(scales)
 library(tidyr)
 
-sessionInfo()
-
 # search for csv files and process them
 tsvs = list.files(pattern = '^NRSTExp_\\d+.tsv$')
 fns  = substr(tsvs, 1, nchar(tsvs)-4)
