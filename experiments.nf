@@ -17,7 +17,7 @@ workflow {
 
 process setupJlEnv {  
   label 'local_job'
-  conda 'conda-jl-env.yml'
+  conda 'custom-conda-env.yml'
   input:
     path jlscdir
   output:
@@ -31,7 +31,7 @@ process setupJlEnv {
 
 process runExp {
   label 'parallel_job'
-  conda 'conda-jl-env.yml'
+  conda 'custom-conda-env.yml'
   input:
     val done
     each exper
@@ -51,7 +51,7 @@ process runExp {
 // TODO: should dispatch one job for each different experiment, with different script
 process makePlots {
   label 'parallel_job'
-  conda 'conda-r-env.yml'
+  conda 'custom-conda-env.yml'
   publishDir deliverableDir, mode: 'copy', overwrite: true
   input:
     path allfiles

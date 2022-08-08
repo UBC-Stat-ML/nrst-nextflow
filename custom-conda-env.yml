@@ -1,8 +1,9 @@
-name: conda-r-env
+name: custom-conda-env
 channels:
   - conda-forge
   - nodefaults
 dependencies:
+  - julia=1.7.3
   - r-base=4.1.*
   - r-dplyr
   - r-ggplot2
