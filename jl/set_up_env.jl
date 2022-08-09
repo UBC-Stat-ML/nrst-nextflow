@@ -1,3 +1,4 @@
+# step 1: install or update our (non-registered) packages
 using Pkg
 
 if Base.find_package("NRSTExp") == nothing
@@ -12,3 +13,6 @@ else
     Pkg.update()
 end
 
+# step 2: force precompilation of dependencies by doing a dry run
+using NRSTExp
+tm = NRST.TuringTemperedModel(HierarchicalModelWithData)
