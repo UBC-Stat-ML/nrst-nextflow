@@ -24,7 +24,11 @@ process setupJlEnv {
   
   """
   # must use system git for my keys to work: https://discourse.julialang.org/t/julia-repl-is-ignoring-my-ssh-config-file/65287/4
-  JULIA_PKG_USE_CLI_GIT=true julia ${jlscdir}/set_up_env.jl
+  # disable cache to avoid race conditions in writing to it: https://discourse.julialang.org/t/precompilation-error-using-hpc/17094/3
+  # name of that option changed: https://github.com/JuliaLang/julia/issues/23054
+  # although technically the cache usage breaks for parallel jobs, we have to use it here too
+  # because it forces no precompilation during installation and update operations 
+  JULIA_PKG_USE_CLI_GIT=true julia --compiled-modules=no ${jlscdir}/set_up_env.jl
   """
 }
 
@@ -39,8 +43,6 @@ process runExp {
     path '*.*'
 
   """
-  # disable cache to avoid race conditions in writing to it: https://discourse.julialang.org/t/precompilation-error-using-hpc/17094/3
-  # name of that option changed: https://github.com/JuliaLang/julia/issues/23054 
   julia --compiled-modules=no -t auto \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """
