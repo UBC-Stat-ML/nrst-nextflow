@@ -8,6 +8,7 @@ if Base.find_package("NRSTExp") == nothing
         Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRSTExp.git")
       ]
     )
+else
+    Pkg.update()
 end
-Pkg.update()
 
