@@ -9,6 +9,7 @@
 .nextflow.log.8
 .nextflow.log.9
 .nextflow
+.nextflow.pid
 work
 links
 .Rhistory
