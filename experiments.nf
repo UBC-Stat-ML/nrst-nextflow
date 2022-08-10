@@ -58,8 +58,8 @@ process makePlots {
     path Rscdir
   output:
     path '*.pdf'
-    path '*.csv'
-    path '*.tsv'
+    path('*.csv', includeInputs: true)
+    path('*.tsv', includeInputs: true)
   """
   Rscript ${Rscdir}/ess_versus_cost_plot.R
   """
