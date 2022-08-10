@@ -1,18 +1,14 @@
-# step 1: install or update our (non-registered) packages
 using Pkg
 
-if Base.find_package("NRSTExp") == nothing
-    Pkg.add(
-      [
-        Pkg.PackageSpec(url="git@github.com:miguelbiron/SplittableRandoms.jl.git"),
-        Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRST.jl.git"),
-        Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRSTExp.git")
-      ]
-    )
-else
-    Pkg.update()
-end
+# create or activate environment
+Pkg.activate("jlenv")
 
-# step 2: force precompilation of dependencies by doing a dry run
-using NRSTExp
-tm = NRST.TuringTemperedModel(HierarchicalModelWithData)
+# install our packages
+Pkg.add(
+  [
+    Pkg.PackageSpec(url="git@github.com:miguelbiron/SplittableRandoms.jl.git"),
+    Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRST.jl.git"),
+    Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRSTExp.git")
+  ]
+)
+

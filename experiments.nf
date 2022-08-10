@@ -10,8 +10,8 @@ workflow {
   cors_ch = Channel.of(0.99) //0.1, 0.25, 0.5, 0.75, 0.9
   
   // run process
-  done_ch  = setupJlEnv(jlScriptsDir_ch)
-  files_ch = runExp(done_ch, exps_ch, mods_ch, cors_ch)
+  jlenv_ch = setupJlEnv(jlScriptsDir_ch)
+  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, cors_ch)
   makePlots(files_ch.collect(), rScriptsDir_ch)
 }
 
@@ -20,18 +20,23 @@ process setupJlEnv {
   input:
     path jlscdir
   output:
-    val true
+    path 'jlenv'
   
   """
-  # must use system git for my keys to work: https://discourse.julialang.org/t/julia-repl-is-ignoring-my-ssh-config-file/65287/4
+  # must use system git for my keys to work:
+  # https://discourse.julialang.org/t/julia-repl-is-ignoring-my-ssh-config-file/65287/4
   JULIA_PKG_USE_CLI_GIT=true julia ${jlscdir}/set_up_env.jl
+  
+  # force precompilation to avoid race conditions:
+  # https://discourse.julialang.org/t/compile-errors-on-hpc/47264/4
+  julia --project=jlenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
   """
 }
 
 process runExp {
   label 'pbs_full_job'
   input:
-    val done
+    path jlenv
     each exper
     each model
     each maxcor
@@ -39,9 +44,7 @@ process runExp {
     path '*.*'
 
   """
-  # disable cache to avoid race conditions in writing to it: https://discourse.julialang.org/t/precompilation-error-using-hpc/17094/3
-  # name of that option changed: https://github.com/JuliaLang/julia/issues/23054
-  julia --compiled-modules=no -t auto \
+  julia --project=$jlenv -t auto \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """
 }
