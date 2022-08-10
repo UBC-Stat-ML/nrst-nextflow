@@ -44,7 +44,7 @@ process runExp {
     path '*.*'
 
   """
-  julia --project=$jlenv -t auto \
+  julia --project=$jlenv -t 32 \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """
 }
