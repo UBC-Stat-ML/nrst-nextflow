@@ -6,8 +6,8 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('ess_versus_cost')
-  mods_ch = Channel.of('HierarchicalModel') //'MvNormal', 'XYModel'
-  cors_ch = Channel.of(0.9, 0.99) //0.1, 0.25, 0.5
+  mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger')
+  cors_ch = Channel.of(0.7, 0.8, 0.9, 1.0)
   
   // run process
   jlenv_ch = setupJlEnv(jlScriptsDir_ch)
@@ -44,7 +44,7 @@ process runExp {
     path '*.*'
 
   """
-  julia --project=$jlenv -t 32 \
+  julia --project=$jlenv -t auto \
       -e "using NRSTExp; dispatch()" $exper $model $maxcor
   """
 }
@@ -58,8 +58,8 @@ process makePlots {
     path Rscdir
   output:
     path '*.pdf'
-    path('*.csv', includeInputs: true)
-    path('*.tsv', includeInputs: true)
+    // path('*.csv', includeInputs: true)
+    // path('*.tsv', includeInputs: true)
   """
   Rscript ${Rscdir}/ess_versus_cost_plot.R
   """
