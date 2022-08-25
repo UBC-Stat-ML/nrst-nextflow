@@ -31,6 +31,7 @@ for(i in seq_along(fns)){
 dtaatjumps = function(df, colname){
   list(df[c(TRUE,diff(df[,colname,drop=TRUE]) > 0),])
 }
+ltys = c("NRST" = "solid", "IdealPar" = "dotted", "IdealSer" = "dotted")
 
 #######################################
 # case 1: cost = num of index process steps
@@ -48,7 +49,7 @@ jumpdta = dta %>%
 for(mod in unique(jumpdta$model)){
   # mod="Challenger"
   moddta = filter(jumpdta, model == mod)
-
+  
   # plot NRST + serial and parallel DTAct
   plotdta = bind_rows(
     moddta %>% 
@@ -57,19 +58,17 @@ for(mod in unique(jumpdta$model)){
     moddta %>%
       filter(proc == "DTAct") %>%
       mutate(cost   = cmtlen, # parallel cost
-             proc   = "IdealParallel",
-             maxcor = 0)#,
-    # jumpdta %>%
-    #   filter(proc == "DTAct") %>%
-    #   mutate(cost   = cstlen, # serial cost
-    #          proc   = "I-Serial",
-    #          maxcor = 0)   
-    ) %>% 
+             proc   = "IdealPar",
+             maxcor = 0),
+    jumpdta %>%
+      filter(proc == "DTAct") %>%
+      mutate(cost   = cstlen, # serial cost
+             proc   = "IdealSer",
+             maxcor = 0)
+  ) %>%
     mutate(mcfac = factor(maxcor))
-  
   plt = plotdta %>% 
     ggplot(aes(x = cost, y = cESS, color = mcfac, fill = mcfac, linetype = proc)) +
-    # geom_point() +
     geom_smooth() +
     scale_x_log10(
       breaks = scales::trans_breaks("log10", function(x) 10^x, high.u.bias = 3), # discourage fractional powers
@@ -81,21 +80,64 @@ for(mod in unique(jumpdta$model)){
     ) +
     scale_colour_viridis_d(name="Max. Corr.") +
     scale_fill_viridis_d(name="Max. Corr.") +
-    scale_linetype_discrete(name="Process") +
-    # facet_wrap(~model, nrow = 1L) +
+    scale_linetype_manual(name="Process", values = ltys) +
     theme_bw() + 
     theme(
-      # text             = element_text(size = 10),
-      # legend.margin    = margin(t=-5),
       panel.grid.minor = element_blank(),
       strip.background = element_blank(),
       plot.title       = element_text(face="bold", hjust = 0.5)
-      # strip.text       = element_text(face = "bold")
     ) +
     labs(
-      x = "Computational cost",
+      x = "Computational cost = number of IP steps",
       y = "ESS bound @ cold level",
       title = mod
     )
   ggsave(sprintf("ess_versus_ipsteps_%s.pdf",mod), plot=plt, width=5, height=3.5)
+}
+
+#######################################
+# case 2: cost = num of xpl steps
+#######################################
+
+# filter jumps
+jumpdta = dta %>% 
+  filter(proc == "NRST") %>% 
+  select(-proc) %>% 
+  nest_by(rep, model, maxcor) %>% 
+  mutate(jumpdta = dtaatjumps(data, "cmnxpl")) %>% 
+  select(-data) %>% 
+  unnest(jumpdta) %>% 
+  ungroup() %>% 
+  filter(cmnxpl > 0) # =0 when 1st tour immediately fails
+
+# iterate models
+for(mod in unique(jumpdta$model)){
+  # mod="Challenger"
+  plt = jumpdta %>% 
+    filter(model == mod) %>% 
+    mutate(mcfac = factor(maxcor)) %>% 
+    ggplot(aes(x = cmnxpl, y = cESS, color = mcfac, fill = mcfac)) +
+    geom_smooth() +
+    scale_x_log10(
+      breaks = scales::trans_breaks("log10", function(x) 10^x, high.u.bias = 3), # discourage fractional powers
+      labels = scales::trans_format("log10", scales::math_format(10^.x))
+    ) +
+    scale_y_log10(
+      breaks = scales::trans_breaks("log10", function(x) 10^x),
+      labels = scales::trans_format("log10", scales::math_format(10^.x))
+    ) +
+    scale_colour_viridis_d(name="Max. Corr.") +
+    scale_fill_viridis_d(name="Max. Corr.") +
+    theme_bw() + 
+    theme(
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(),
+      plot.title       = element_text(face="bold", hjust = 0.5)
+    ) +
+    labs(
+      x = "Computational cost = number of expl. steps",
+      y = "ESS bound @ cold level",
+      title = mod
+    )
+  ggsave(sprintf("ess_versus_xplsteps_%s.pdf",mod), plot=plt, width=5, height=3.5)
 }
