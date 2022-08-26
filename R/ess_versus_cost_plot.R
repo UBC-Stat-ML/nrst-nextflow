@@ -31,11 +31,12 @@ for(i in seq_along(fns)){
 dtaatjumps = function(df, colname){
   list(df[c(TRUE,diff(df[,colname,drop=TRUE]) > 0),])
 }
-ltys = c("NRST" = "solid", "IdealPar" = "dotted", "IdealSer" = "dotted")
 
 #######################################
 # case 1: cost = num of index process steps
 #######################################
+
+ltys = c("NRST" = "solid", "IdealPar" = "dotdash", "IdealSer" = "dotted")
 
 # filter jumps
 jumpdta = dta %>% 

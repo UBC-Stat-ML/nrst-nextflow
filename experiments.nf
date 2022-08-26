@@ -7,7 +7,7 @@ workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('ess_versus_cost')
   mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger')
-  cors_ch = Channel.of(0.4, 0.6, 0.8, 0.99, 1.0)
+  cors_ch = Channel.of(0.4, 0.6, 0.8, 0.9, 0.99, 1.0)
   
   // run process
   jlenv_ch = setupJlEnv(jlScriptsDir_ch)
