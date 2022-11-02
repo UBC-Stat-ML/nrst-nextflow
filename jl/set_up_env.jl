@@ -8,7 +8,7 @@ Pkg.activate("jlenv")
 # dependencies when the pkgs are not registered
 Pkg.add(
   [
-    Pkg.PackageSpec(url="git@github.com:miguelbiron/SplittableRandoms.jl.git"),
+    Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/SplittableRandoms.jl.git"),
     Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRST.jl.git"),
     Pkg.PackageSpec(url="git@github.com:UBC-Stat-ML/NRSTExp.git")
   ]

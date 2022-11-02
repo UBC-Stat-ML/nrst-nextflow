@@ -1,14 +1,12 @@
-################################################################################
-# todo: maybe use scam pkg to fit monotonic P-spline?
-# https://stackoverflow.com/a/56559086/5443023
-################################################################################
+# TODO: make this a short data-wrangling only script (basically here until line 20)
+# I can make plots in local machine
 library(dplyr)
 library(ggplot2)
 library(scales)
 library(tidyr)
 
 # search for csv files and process them
-tsvs = list.files(pattern = '^NRSTExp_\\d+.tsv$')
+tsvs = list.files(pattern = '^NRSTExp_\\d+_\\d+.tsv$')
 fns  = substr(tsvs, 1, nchar(tsvs)-4)
 dta  = data.frame()
 for(i in seq_along(fns)){
@@ -16,15 +14,8 @@ for(i in seq_along(fns)){
   rawmeta     = read.delim(tsvs[i], header = FALSE)
   meta        = as.data.frame(t(rawmeta[,-1]))
   names(meta) = rawmeta[, 1]
-  if(meta$exper == "ess_versus_cost"){
-    newdta = read.csv(paste0(fns[i], ".csv.gz"))
-    dta    = newdta %>%
-      mutate(
-        model = meta$model,
-        maxcor= as.numeric(meta$maxcor)
-      ) %>% 
-      bind_rows(dta)
-  }
+  newdta      = read.csv(paste0(fns[i], ".csv.gz"))
+  dta = bind_rows(dta, crossing(meta, newdta))
 }
 
 ##############################################################################

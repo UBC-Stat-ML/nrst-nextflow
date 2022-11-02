@@ -5,13 +5,16 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
 workflow {
   // define the grid of parameters over which to run the experiments
-  exps_ch = Channel.of('ess_versus_cost')
+  exps_ch = Channel.of('benchmark')
   mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger')
-  cors_ch = Channel.of(0.4, 0.6, 0.8, 0.9, 0.99, 1.0)
-  
+  funs_ch = Channel.of('mean', 'median')
+  cors_ch = Channel.of(0.5, 0.6, 0.8, 0.9, 0.99, 1.0)
+  gams_ch = Channel.of(0.5, 0.75, 1.0, 1.5, 2.0, 3.0)
+  seeds_ch= Channel.of(3990, 5057, 8585, 7265, 4468, 9334, 3641, 6101, 2721, 4855, 4787, 4022, 4477, 4202, 6729, 4235, 4428, 6422, 1555, 797, 2320, 3804, 8006, 6459, 2701, 3462, 3121, 6927, 4582, 5351)
+
   // run process
   jlenv_ch = setupJlEnv(jlScriptsDir_ch)
-  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, cors_ch)
+  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, seeds_ch)
   makePlots(files_ch.collect(), rScriptsDir_ch)
 }
 
@@ -39,13 +42,16 @@ process runExp {
     path jlenv
     each exper
     each model
+    each fun
     each maxcor
+    each gamma
+    each seed
   output:
     path '*.*'
 
   """
   julia --project=$jlenv -t auto \
-      -e "using NRSTExp; dispatch()" $exper $model $maxcor
+      -e "using NRSTExp; dispatch()" exp=$exper mod=$model fun=$fun cor=$maxcor gam=$gamma seed=$seed
   """
 }
 
@@ -57,11 +63,11 @@ process makePlots {
     path allfiles
     path Rscdir
   output:
-    path '*.pdf'
-    // path('*.csv', includeInputs: true)
-    // path('*.tsv', includeInputs: true)
+    // path '*.pdf'
+    path('*.csv', includeInputs: true)
+    path('*.tsv', includeInputs: true)
   """
-  Rscript ${Rscdir}/ess_versus_cost_plot.R
+  Rscript ${Rscdir}/benchmark.R
   """
 }
 
