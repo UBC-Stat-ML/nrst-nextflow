@@ -63,11 +63,12 @@ process makePlots {
     path allfiles
     path Rscdir
   output:
+    path '*.csv'
     // path '*.pdf'
-    path('*.csv', includeInputs: true)
-    path('*.tsv', includeInputs: true)
+    // path('*.csv', includeInputs: true)
+    // path('*.tsv', includeInputs: true)
   """
-  Rscript ${Rscdir}/benchmark.R
+  Rscript ${Rscdir}/consolidate.R
   """
 }
 
