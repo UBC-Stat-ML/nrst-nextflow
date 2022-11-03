@@ -19,5 +19,4 @@ links
 *.csv
 *.tsv
 *.gz
-!deliverables/**/*.pdf
 
