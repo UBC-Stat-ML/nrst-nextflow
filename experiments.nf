@@ -50,7 +50,7 @@ process runExp {
     path '*.*'
 
   """
-  julia --project=$jlenv -t 16 \
+  julia --project=$jlenv -t 11 \
       -e "using NRSTExp; dispatch()" exp=$exper mod=$model fun=$fun cor=$maxcor gam=$gamma seed=$seed
   """
 }
