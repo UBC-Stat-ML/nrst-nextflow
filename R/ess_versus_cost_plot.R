@@ -1,31 +1,65 @@
-################################################################################
-# todo: maybe use scam pkg to fit monotonic P-spline?
-# https://stackoverflow.com/a/56559086/5443023
-################################################################################
 library(dplyr)
 library(ggplot2)
 library(scales)
 library(tidyr)
 
-# search for csv files and process them
-tsvs = list.files(pattern = '^NRSTExp_\\d+.tsv$')
-fns  = substr(tsvs, 1, nchar(tsvs)-4)
-dta  = data.frame()
-for(i in seq_along(fns)){
-  #i=1
-  rawmeta     = read.delim(tsvs[i], header = FALSE)
-  meta        = as.data.frame(t(rawmeta[,-1]))
-  names(meta) = rawmeta[, 1]
-  if(meta$exper == "ess_versus_cost"){
-    newdta = read.csv(paste0(fns[i], ".csv.gz"))
-    dta    = newdta %>%
-      mutate(
-        model = meta$model,
-        maxcor= as.numeric(meta$maxcor)
-      ) %>% 
-      bind_rows(dta)
-  }
-}
+# load the latest consolidated file
+csvs = list.files(pattern = '^NRSTExp_\\d+.csv$')
+dta  = read.csv(max(csvs))
+
+# filter out mvnormal experiment due to error in tuning always with free energy
+# TODO: remove once above is corrected
+dta = filter(dta, mod != "MvNormal")
+
+##############################################################################
+# compare mean / median
+##############################################################################
+
+cor_gam_labs = labeller(
+  cor = function(co){paste("Max. Corr. =", co)},
+  gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")}
+)
+
+# TE
+dta %>% 
+  filter(proc == "NRST") %>% 
+  ggplot(aes(y = mod, x = TE, color = fun)) +
+  geom_violin() +
+  scale_x_log10() +
+  facet_grid(cor ~ gam, labeller = cor_gam_labs) + 
+  theme_bw() +
+  labs(
+    x = "Tour Effectiveness (TE)",
+    y = "Model"
+  )
+
+# TE/max tour length
+dta %>% 
+  filter(proc == "NRST") %>% 
+  mutate(tgt = TE/rtpar) %>% 
+  ggplot(aes(y = mod, x = tgt, color = fun)) +
+  geom_violin() +
+  scale_x_log10() +
+  facet_grid(cor ~ gam, labeller = cor_gam_labs) + 
+  theme_bw() +
+  labs(
+    x = "Efficiency = TE/max(tourlength)",
+    y = "Model"
+  )
+
+# TE/max V evals
+dta %>% 
+  filter(proc == "NRST") %>% 
+  mutate(tgt = TE/costpar) %>% 
+  ggplot(aes(y = mod, x = tgt, color = fun)) +
+  geom_violin() +
+  scale_x_log10() +
+  facet_grid(cor ~ gam, labeller = cor_gam_labs) +
+  theme_bw() +
+  labs(
+    x = "Efficiency = TE/max(number of V(x) evals.)",
+    y = "Model"
+  )
 
 ##############################################################################
 # compare parallel for different correlations
