@@ -9,7 +9,7 @@ workflow {
   mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger', 'MRNATrans')
   funs_ch = Channel.of('median', 'mean')
   cors_ch = Channel.of(0.5, 0.6, 0.7, 0.8)
-  gams_ch = Channel.of(1.0, 2.0, 4.0, 8.0)
+  gams_ch = Channel.of(2.0, 4.0, 6.0, 8.0)
   seeds_ch= Channel.of(3990, 5057, 8585, 7265, 4468, 9334, 3641, 6101, 2721, 4855, 4787, 4022, 4477, 4202, 6729, 4235, 4428, 6422, 1555, 797, 2320, 3804, 8006, 6459, 2701, 3462, 3121, 6927, 4582, 5351)
 
   // run process
