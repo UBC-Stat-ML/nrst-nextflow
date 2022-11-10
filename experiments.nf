@@ -10,7 +10,7 @@ workflow {
   funs_ch = Channel.of('median', 'mean')
   cors_ch = Channel.of(0.5, 0.6, 0.7, 0.8)
   gams_ch = Channel.of(3.0, 4.0, 5.0, 6.0)
-  seeds_ch= Channel.of(3990, 5057, 8585, 7265, 4468, 9334, 3641, 6101, 2721, 4855, 4787, 4022, 4477, 4202, 6729, 4235, 4428, 6422, 1555, 797, 2320, 3804, 8006, 6459, 2701, 3462, 3121, 6927, 4582, 5351)
+  seeds_ch= Channel.of(3947,8378,4253,4998,5500,4794,2140,8181,8228,721,9673,9114,9499,8371,8524,7356,6708,5269,3326,9186) // 20 ints random.org 2022-11-10 16:53:53 UTC
 
   // run process
   jlenv_ch = setupJlEnv(jlScriptsDir_ch)
@@ -50,7 +50,7 @@ process runExp {
     path '*.*'
 
   """
-  JULIA_DEBUG=NRST julia --project=$jlenv -t 10 \
+  JULIA_DEBUG=NRST julia --project=$jlenv -t 8 \
       -e "using NRSTExp; dispatch()" exp=$exper mod=$model fun=$fun cor=$maxcor gam=$gamma seed=$seed
   """
 }
