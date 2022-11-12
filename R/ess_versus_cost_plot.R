@@ -4,12 +4,10 @@ library(scales)
 library(tidyr)
 
 # load the latest consolidated file
-csvs = list.files(pattern = '^NRSTExp_\\d+.csv$')
+csvs = list.files(path = file.path("..","deliverables"),
+                  pattern = '^NRSTExp_\\d+.csv$',
+                  full.names = TRUE)
 dta  = read.csv(max(csvs))
-
-# filter out mvnormal experiment due to error in tuning always with free energy
-# TODO: remove once above is corrected
-dta = filter(dta, mod != "MvNormal")
 
 ##############################################################################
 # compare mean / median
@@ -47,7 +45,11 @@ dta %>%
     y = "Model"
   )
 
+#######################################
 # TE/max V evals
+#######################################
+
+# panorama
 dta %>% 
   filter(proc == "NRST") %>% 
   mutate(tgt = TE/costpar) %>% 
@@ -59,6 +61,20 @@ dta %>%
   labs(
     x = "Efficiency = TE/max(number of V(x) evals.)",
     y = "Model"
+  )
+
+dta %>% 
+  filter(proc == "NRST") %>% 
+  mutate(tgt = TE/costpar) %>% 
+  ggplot(aes(y = as.factor(cor), x = tgt, color = fun)) +
+  # geom_violin() +
+  geom_boxplot() +
+  scale_x_log10() +
+  facet_grid(gam ~ mod, labeller = cor_gam_labs, scales="free_x") +
+  theme_bw() +
+  labs(
+    x = "Efficiency = TE/max(number of V(x) evals.)",
+    y = "Maximum correlation"
   )
 
 ##############################################################################
