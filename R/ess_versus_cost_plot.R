@@ -4,13 +4,13 @@ library(scales)
 library(tidyr)
 
 # load the latest consolidated file
-csvs = list.files(path = file.path("..","deliverables"),
-                  pattern = '^NRSTExp_\\d+.csv$',
+csvs = list.files(path       = file.path("..","deliverables"),
+                  pattern    = '^NRSTExp_\\d+.csv$',
                   full.names = TRUE)
 dta  = read.csv(max(csvs))
 
 ##############################################################################
-# compare mean / median
+# TE/max V evals
 ##############################################################################
 
 cor_gam_labs = labeller(
@@ -18,58 +18,16 @@ cor_gam_labs = labeller(
   gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")}
 )
 
-# TE
-dta %>% 
-  filter(proc == "NRST") %>% 
-  ggplot(aes(y = mod, x = TE, color = fun)) +
-  geom_violin() +
-  scale_x_log10() +
-  facet_grid(cor ~ gam, labeller = cor_gam_labs) + 
-  theme_bw() +
-  labs(
-    x = "Tour Effectiveness (TE)",
-    y = "Model"
-  )
-
-# TE/max tour length
-dta %>% 
-  filter(proc == "NRST") %>% 
-  mutate(tgt = TE/rtpar) %>% 
-  ggplot(aes(y = mod, x = tgt, color = fun)) +
-  geom_violin() +
-  scale_x_log10() +
-  facet_grid(cor ~ gam, labeller = cor_gam_labs) + 
-  theme_bw() +
-  labs(
-    x = "Efficiency = TE/max(tourlength)",
-    y = "Model"
-  )
-
-#######################################
-# TE/max V evals
-#######################################
-
-# panorama
-dta %>% 
-  filter(proc == "NRST") %>% 
-  mutate(tgt = TE/costpar) %>% 
-  ggplot(aes(y = mod, x = tgt, color = fun)) +
-  geom_violin() +
-  scale_x_log10() +
-  facet_grid(cor ~ gam, labeller = cor_gam_labs) +
-  theme_bw() +
-  labs(
-    x = "Efficiency = TE/max(number of V(x) evals.)",
-    y = "Model"
-  )
-
 dta %>% 
   filter(proc == "NRST") %>% 
   mutate(tgt = TE/costpar) %>% 
   ggplot(aes(y = as.factor(cor), x = tgt, color = fun)) +
-  # geom_violin() +
   geom_boxplot() +
+  geom_point(stat = "summary", fun = "mean", shape = "cross",
+             position = position_dodge2(width=0.8)) + 
   scale_x_log10() +
+  scale_color_discrete(name="Strategy",
+                       labels=c("mean"="Mean", "median"="Median")) +
   facet_grid(gam ~ mod, labeller = cor_gam_labs, scales="free_x") +
   theme_bw() +
   labs(
