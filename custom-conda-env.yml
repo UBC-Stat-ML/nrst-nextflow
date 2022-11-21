@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - julia=1.8.*
+  - julia=1.8.3
   - r-base=4.1.*
   - r-dplyr
   - r-ggplot2
