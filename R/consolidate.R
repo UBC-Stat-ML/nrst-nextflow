@@ -2,7 +2,7 @@ library(dplyr)
 library(tidyr)
 
 # search for csv files, process them, and save result
-tsvs = list.files(pattern = '^NRSTExp_\\d+_\\d+.tsv$')
+tsvs = list.files(pattern = '^NRSTExp_\\w+.tsv$')
 fns  = substr(tsvs, 1, nchar(tsvs)-4)
 dta  = data.frame()
 for(i in seq_along(fns)){
