@@ -36,17 +36,19 @@ dta %>%
   )
 
 # print the combination that achieves the most consistent performance
-dta %>% 
-  filter(proc == "NRST") %>% 
+summ=dta %>% 
+  filter(proc == "NRST" & TE >= 5e-4) %>% # update with NRST.DEFAULT_TE_min
   mutate(tgt = TE/costpar) %>% 
   group_by(mod,cor,gam) %>% 
   summarise(med_tgt = median(tgt),
             mmd_tgt = med_tgt/mad(tgt,center=med_tgt,constant = 1),
             msd_tgt = med_tgt/sd(tgt),
             mrn_tgt = med_tgt/diff(range(tgt)),
-            mqt_tgt = med_tgt/(quantile(tgt, .75) - tgt[order(tgt)[2]]) # range discarding minimum and everything above p75 (don't care ab good surprises, only bad ones)
+            mqt_tgt = med_tgt/(med_tgt - tgt[order(tgt)[2]]) # range discarding minimum and everything above median (don't care ab good surprises, only bad ones)
   ) %>% 
   ungroup() %>% 
+  # group_by(mod) %>% 
+  # slice_max(mqt_tgt,n=3)
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
@@ -57,7 +59,7 @@ dta %>%
   group_by(cor,gam) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
-
+summ
 ##############################################################################
 # compare parallel for different correlations
 ##############################################################################
