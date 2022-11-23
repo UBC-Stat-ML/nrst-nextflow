@@ -13,19 +13,23 @@ workflow {
   seeds_ch= Channel.of(3947,8378,4253,4998)//,5500,4794,2140,8181,8228,721,9673,9114,9499,8371,8524,7356,6708,5269,3326,9186,8071,8375,5760,4625,8978,4340,1024,2587,104,3427)
 
   // run process
-  jlenv_ch = setupJlEnv(jlScriptsDir_ch)
+  jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
   files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, seeds_ch)
   makePlots(files_ch.collect(), rScriptsDir_ch)
 }
 
-process setupJlEnv {  
+process setupEnv {  
   label 'local_job'
   input:
-    path jlscdir
+    path jlscdir, Rscdir
   output:
     path 'jlenv'
   
   """
+  #############################################################################
+  # set up julia
+  #############################################################################
+  
   # must use system git for my keys to work:
   # https://discourse.julialang.org/t/julia-repl-is-ignoring-my-ssh-config-file/65287/4
   JULIA_PKG_USE_CLI_GIT=true julia ${jlscdir}/set_up_env.jl
@@ -33,6 +37,12 @@ process setupJlEnv {
   # force precompilation to avoid race conditions:
   # https://discourse.julialang.org/t/compile-errors-on-hpc/47264/4
   julia --project=jlenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+  
+  #############################################################################
+  # set up R
+  #############################################################################
+  
+  Rscript ${Rscdir}/set_up_env.R
   """
 }
 
