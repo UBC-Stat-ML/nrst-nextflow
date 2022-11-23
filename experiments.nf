@@ -21,7 +21,8 @@ workflow {
 process setupEnv {  
   label 'local_job'
   input:
-    path jlscdir, Rscdir
+    path jlscdir
+    path Rscdir
   output:
     path 'jlenv'
   
