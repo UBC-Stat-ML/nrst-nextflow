@@ -5,7 +5,7 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 
 workflow {
   // define the grid of parameters over which to run the experiments
-  exps_ch = Channel.of('benchmark')
+  exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger', 'MRNATrans')
   funs_ch = Channel.of('median', 'mean')
   cors_ch = Channel.of(0.6, 0.7, 0.8, 0.9, 0.95)
@@ -25,26 +25,8 @@ process setupEnv {
     path Rscdir
   output:
     path 'jlenv'
-  
-  """
-  #############################################################################
-  # set up julia
-  #############################################################################
-  
-  # must use system git for my keys to work:
-  # https://discourse.julialang.org/t/julia-repl-is-ignoring-my-ssh-config-file/65287/4
-  JULIA_PKG_USE_CLI_GIT=true julia ${jlscdir}/set_up_env.jl
-  
-  # force precompilation to avoid race conditions:
-  # https://discourse.julialang.org/t/compile-errors-on-hpc/47264/4
-  julia --project=jlenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
-  
-  #############################################################################
-  # set up R
-  #############################################################################
-  
-  Rscript ${Rscdir}/set_up_env.R
-  """
+  script:
+    template 'setupEnv.sh'
 }
 
 process runExp {
@@ -59,11 +41,8 @@ process runExp {
     each seed
   output:
     path '*.*'
-
-  """
-  JULIA_DEBUG=NRST julia --project=$jlenv -t 8 \
-      -e "using NRSTExp; dispatch()" exp=$exper mod=$model fun=$fun cor=$maxcor gam=$gamma seed=$seed
-  """
+  script:
+    template 'runExp.sh'
 }
 
 // TODO: should dispatch one job for each different experiment, with different script
