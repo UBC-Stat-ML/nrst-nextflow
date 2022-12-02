@@ -6,7 +6,7 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('hyperparams')
-  mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel', 'Challenger', 'MRNATrans')
+  mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel_small', 'Challenger', 'MRNATrans')
   funs_ch = Channel.of('median', 'mean')
   cors_ch = Channel.of(0.6, 0.7, 0.8, 0.9, 0.95)
   gams_ch = Channel.of(4.0, 6.0, 8.0, 10.0, 12.0)
