@@ -6,11 +6,11 @@ rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('benchmark')
-  mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel_small', 'XYModel_big', 'Challenger', 'MRNATrans')
+  mods_ch = Channel.of('HierarchicalModel', 'MvNormal', 'XYModel_big', 'Challenger', 'MRNATrans')
   funs_ch = Channel.of('mean')
   cors_ch = Channel.of(0.9)
   gams_ch = Channel.of(8.0)
-  seeds_ch= Channel.of(3947,8378,4253,4998,5500,4794,2140,8181,8228,721,9673,9114,9499,8371,8524,7356,6708,5269,3326,9186,8071,8375,5760,4625,8978,4340,1024,2587,104,3427)
+  seeds_ch= Channel.of(40378,40322,75611,72267,39092,22982,72984,44550,60144,66921,55293,15998,20975,48496,16905,97508,47257,53601,74852,89440,69929,99540,48775,65873,51393,87895,44991,24482,47498,48961)
 
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
