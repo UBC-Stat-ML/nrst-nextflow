@@ -5,5 +5,6 @@ JULIA_DEBUG=NRST julia --project=$jlenv -t 8 \
     fun=$fun    \
     cor=$maxcor \
     gam=$gamma  \
+    xps=$xps    \
     seed=$seed
 

@@ -17,7 +17,7 @@ TE_min = 5e-4
 ##############################################################################
 
 dta %>% 
-  filter(cor == 0.90 & gam == 8.0 & fun == "mean" & !(proc %in% c("DTPerf", "DTAct"))) %>% 
+  filter(!(proc %in% c("DTPerf", "DTAct"))) %>% 
   mutate(tgt = TE/costpar) %>% 
   ggplot(aes(x = proc, y=tgt)) +
   geom_boxplot() +
