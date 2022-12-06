@@ -5,7 +5,7 @@ library(tidyr)
 
 # load the latest consolidated file
 csvs = list.files(path       = file.path("..","deliverables"),
-                  pattern    = '^NRSTExp_\\d+.csv$',
+                  pattern    = '^NRSTExp_benchmark_\\d+.csv$',
                   full.names = TRUE)
 dta  = read.csv(max(csvs))
 

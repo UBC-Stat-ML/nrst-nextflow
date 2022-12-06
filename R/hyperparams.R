@@ -5,7 +5,7 @@ library(tidyr)
 
 # load the latest consolidated file
 csvs = list.files(path       = file.path("..","deliverables"),
-                  pattern    = '^NRSTExp_\\d+.csv$',
+                  pattern    = '^NRSTExp_hyperparams_\\d+.csv$',
                   full.names = TRUE)
 dta  = read.csv(max(csvs))
 
@@ -78,3 +78,20 @@ summ=dta %>%
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
 summ
+
+##############################################################################
+# xps-only 
+##############################################################################
+
+dta %>% 
+  filter(!(proc %in% c("DTPerf", "DTAct"))) %>% 
+  mutate(tgt = TE/costpar) %>% 
+  ggplot(aes(x = as.factor(xps), y=tgt)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  facet_wrap(~ mod, scales="free_y", nrow = 1) +
+  theme_bw() +
+  labs(
+    x = "Sampler",
+    y = "Efficiency = TE/max(number of V(x) evals.)"
+  )

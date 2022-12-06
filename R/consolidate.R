@@ -15,6 +15,6 @@ for(i in seq_along(fns)){
 }
 write.csv(
   dta, 
-  paste0("NRSTExp_",as.integer(trunc(as.numeric(Sys.time()))),".csv"),
+  paste0("NRSTExp_",dta$exp[1],"_",as.integer(trunc(as.numeric(Sys.time()))),".csv"),
   row.names = FALSE
 )
