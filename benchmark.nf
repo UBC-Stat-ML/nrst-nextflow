@@ -10,11 +10,12 @@ workflow {
   funs_ch = Channel.of('mean')
   cors_ch = Channel.of(0.9)
   gams_ch = Channel.of(8.0)
+  xpss_ch = Channel.of('0.01')
   seeds_ch= Channel.of(40378,40322,75611,72267,39092,22982,72984,44550,60144,66921,55293,15998,20975,48496,16905,97508,47257,53601,74852,89440,69929,99540,48775,65873,51393,87895,44991,24482,47498,48961)
 
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
-  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, seeds_ch)
+  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpss_ch, seeds_ch)
   makePlots(files_ch.collect(), rScriptsDir_ch)
 }
 
@@ -38,6 +39,7 @@ process runExp {
     each fun
     each maxcor
     each gamma
+    each xps
     each seed
   output:
     path '*.*'

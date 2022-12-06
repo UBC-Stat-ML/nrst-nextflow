@@ -95,3 +95,41 @@ dta %>%
     x = "Sampler",
     y = "Efficiency = TE/max(number of V(x) evals.)"
   )
+
+##############################################################################
+# find the most robust combination
+##############################################################################
+
+# find combinations that never gave TEs lower than limit
+valid_combs = dta %>% 
+  filter(fun=="mean" & proc == "NRST") %>% 
+  group_by(mod,xps) %>% 
+  summarise(n_valid_TE = sum(TE > TE_min)) %>% 
+  ungroup() %>% 
+  filter(n_valid_TE == max(n_valid_TE)) %>% 
+  select(-n_valid_TE)
+
+# print the combination that achieves the most consistent performance
+summ=dta %>% 
+  filter(fun == "mean" & proc == "NRST") %>% 
+  mutate(tgt = TE/costpar) %>% 
+  group_by(mod,xps) %>% 
+  # compute aggregates over replications (seeds)
+  summarise(
+    med_tgt = median(tgt),
+    mqt_tgt = med_tgt/(med_tgt - tgt[order(tgt)[2]]) # range discarding minimum and everything above median (don't care ab good surprises, only bad ones)
+  ) %>% 
+  ungroup() %>% 
+  # group_by(mod) %>%
+  # slice_max(mqt_tgt,n=3)
+  inner_join(
+    (.) %>% 
+      group_by(mod) %>%  
+      slice_max(mqt_tgt,n=1) %>% 
+      select(max_mqt_tgt=mqt_tgt),
+    by="mod") %>% 
+  mutate(ratio = mqt_tgt/max_mqt_tgt) %>% 
+  group_by(xps) %>% 
+  summarise(mean_ratio=mean(ratio)) %>% 
+  arrange(desc(mean_ratio))
+summ # xps=0.01
