@@ -1,4 +1,5 @@
-JULIA_DEBUG=NRST julia --project=$jlenv -t 8 \
+JULIA_DEBUG=NRST julia --project=$jlenv \
+    -t ${task.cpus} \
     -e "using NRSTExp; dispatch()" \
     exp=$exper  \
     mod=$model  \

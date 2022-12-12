@@ -28,7 +28,7 @@ process runExp {
 
 process collectAndProcess {
   label 'cluster_light_job'
-  publishDir deliverableDir, mode: 'copy', overwrite: true
+  publishDir params.deliverableDir, mode: 'copy', overwrite: true
   input:
     path allfiles
     path Rscdir

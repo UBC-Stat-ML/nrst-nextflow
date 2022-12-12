@@ -1,7 +1,11 @@
 // parameters
-deliverableDir = 'deliverables/'
+params.deliverableDir = 'deliverables/'
+
+// paths
 jlScriptsDir_ch= Channel.fromPath('jl', type: 'dir')
 rScriptsDir_ch = Channel.fromPath('R', type: 'dir')
+
+include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks' params(params)
 
 workflow {
   // define the grid of parameters over which to run the experiments
@@ -16,8 +20,6 @@ workflow {
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
   files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpss_ch, seeds_ch)
-  makePlots(files_ch.collect(), rScriptsDir_ch)
+  collectAndProcess(files_ch.collect(), rScriptsDir_ch)
 }
-
-include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks'
 
