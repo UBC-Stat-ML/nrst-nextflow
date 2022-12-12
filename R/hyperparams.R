@@ -79,7 +79,6 @@ summ # (cor, gam) = (0.7, 6)
 ##############################################################################
 
 dta %>% 
-  filter(!(proc %in% c("DTPerf", "DTAct"))) %>% 
   mutate(tgt = TE/costpar) %>% 
   ggplot(aes(x = as.factor(xps), y=tgt)) +
   geom_boxplot() +
