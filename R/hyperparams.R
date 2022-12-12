@@ -7,7 +7,7 @@ library(tidyr)
 csvs = list.files(path       = file.path("..","deliverables"),
                   pattern    = '^NRSTExp_hyperparams_\\d+.csv$',
                   full.names = TRUE)
-dta  = read.csv(max(csvs))
+dta  = read.csv(max(csvs))#csvs[2])#)
 
 # parameters
 TE_min = 5e-4
@@ -38,9 +38,10 @@ dta %>%
     y = "Maximum correlation"
   )
 
-##############################################################################
-# find the most robust combination
-##############################################################################
+#######################################
+# find the most robust combination:
+# maximize the p5 across repetitions
+#######################################
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -51,33 +52,27 @@ valid_combs = dta %>%
   filter(n_valid_TE == max(n_valid_TE)) %>% 
   select(-n_valid_TE)
 
-# print the combination that achieves the most consistent performance
 summ=dta %>% 
   filter(fun == "mean" & proc == "NRST") %>% 
   inner_join(valid_combs) %>% 
-  mutate(tgt = TE/costpar) %>% 
+  mutate(tgt = TE/costpar) %>%
   group_by(mod,cor,gam) %>% 
   # compute aggregates over replications (seeds)
-  summarise(med_tgt = median(tgt),
-            mmd_tgt = med_tgt/mad(tgt,center=med_tgt,constant = 1),
-            msd_tgt = med_tgt/sd(tgt),
-            mrn_tgt = med_tgt/diff(range(tgt)),
-            mqt_tgt = med_tgt/(med_tgt - tgt[order(tgt)[2]]) # range discarding minimum and everything above median (don't care ab good surprises, only bad ones)
-  ) %>% 
+  summarise(agg_tgt = quantile(tgt,0.05)) %>% 
   ungroup() %>% 
   # group_by(mod) %>%
-  # slice_max(mqt_tgt,n=3)
+  # slice_max(agg_tgt,n=3)
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
-      slice_max(mqt_tgt,n=1) %>% 
-      select(max_mqt_tgt=mqt_tgt),
+      slice_max(agg_tgt,n=1) %>% 
+      select(max_agg_tgt=agg_tgt),
     by="mod") %>% 
-  mutate(ratio = mqt_tgt/max_mqt_tgt) %>% 
+  mutate(ratio = agg_tgt/max_agg_tgt) %>% 
   group_by(cor,gam) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
-summ
+summ # (cor, gam) = (0.7, 6)
 
 ##############################################################################
 # xps-only 
@@ -96,9 +91,9 @@ dta %>%
     y = "Efficiency = TE/max(number of V(x) evals.)"
   )
 
-##############################################################################
+#######################################
 # find the most robust combination
-##############################################################################
+#######################################
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -112,23 +107,21 @@ valid_combs = dta %>%
 # print the combination that achieves the most consistent performance
 summ=dta %>% 
   filter(fun == "mean" & proc == "NRST") %>% 
-  mutate(tgt = TE/costpar) %>% 
+  inner_join(valid_combs) %>% 
+  mutate(tgt = TE/costpar) %>%
   group_by(mod,xps) %>% 
   # compute aggregates over replications (seeds)
-  summarise(
-    med_tgt = median(tgt),
-    mqt_tgt = med_tgt/(med_tgt - tgt[order(tgt)[2]]) # range discarding minimum and everything above median (don't care ab good surprises, only bad ones)
-  ) %>% 
+  summarise(agg_tgt = quantile(tgt,0.05)) %>% 
   ungroup() %>% 
   # group_by(mod) %>%
-  # slice_max(mqt_tgt,n=3)
+  # slice_max(agg_tgt,n=3)
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
-      slice_max(mqt_tgt,n=1) %>% 
-      select(max_mqt_tgt=mqt_tgt),
+      slice_max(agg_tgt,n=1) %>% 
+      select(max_agg_tgt=agg_tgt),
     by="mod") %>% 
-  mutate(ratio = mqt_tgt/max_mqt_tgt) %>% 
+  mutate(ratio = agg_tgt/max_agg_tgt) %>% 
   group_by(xps) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))

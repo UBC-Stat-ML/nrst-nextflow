@@ -19,48 +19,5 @@ workflow {
   makePlots(files_ch.collect(), rScriptsDir_ch)
 }
 
-process setupEnv {  
-  label 'local_job'
-  input:
-    path jlscdir
-    path Rscdir
-  output:
-    path 'jlenv'
-  script:
-    template 'setupEnv.sh'
-}
-
-process runExp {
-  label 'cluster_full_job'
-  input:
-    path jlenv
-    each exper
-    each model
-    each fun
-    each maxcor
-    each gamma
-    each xps
-    each seed
-  output:
-    path '*.*'
-  script:
-    template 'runExp.sh'
-}
-
-// TODO: should dispatch one job for each different experiment, with different script
-process makePlots {
-  label 'cluster_light_job'
-  publishDir deliverableDir, mode: 'copy', overwrite: true
-  input:
-    path allfiles
-    path Rscdir
-  output:
-    path '*.csv'
-    // path '*.pdf'
-    // path('*.csv', includeInputs: true)
-    // path('*.tsv', includeInputs: true)
-  """
-  Rscript ${Rscdir}/consolidate.R
-  """
-}
+include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks'
 
