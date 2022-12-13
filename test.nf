@@ -4,12 +4,15 @@ workflow {
 }
 
 process testProc {  
-  label 'pbs_light_job'
+  label 'local'
+  cpus  { workflow.profile == 'standard' ? 1 : (workflow.scriptName == 'test.nf' ? 8 : 16) }
   output:
     stdout
   
   """
-  printenv | grep PBS
+  echo $workflow.profile
+  echo $workflow.scriptName
+  echo ${task.cpus}
   """
 }
 
