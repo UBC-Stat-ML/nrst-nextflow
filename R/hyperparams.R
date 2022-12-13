@@ -58,7 +58,7 @@ summ=dta %>%
   mutate(tgt = TE/costpar) %>%
   group_by(mod,cor,gam) %>% 
   # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,0.1)) %>% 
+  summarise(agg_tgt = quantile(tgt,0.05)) %>% 
   ungroup() %>% 
   # group_by(mod) %>%
   # slice_max(agg_tgt,n=3)
