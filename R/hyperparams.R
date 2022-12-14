@@ -43,6 +43,8 @@ dta %>%
 # maximize the p5 across repetitions
 #######################################
 
+q_tgt = 0 # find combination that maximizes the q_tgt quantile across reps.
+
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
   filter(fun=="mean" & proc == "NRST") %>% 
@@ -58,7 +60,7 @@ summ=dta %>%
   mutate(tgt = TE/costpar) %>%
   group_by(mod,cor,gam) %>% 
   # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,0.05)) %>% 
+  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
   # group_by(mod) %>%
   # slice_max(agg_tgt,n=3)
@@ -72,7 +74,7 @@ summ=dta %>%
   group_by(cor,gam) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
-summ # (cor, gam) = (0.7, 6)
+summ
 
 ##############################################################################
 # xps-only 
