@@ -43,7 +43,7 @@ dta %>%
 # maximize the p5 across repetitions
 #######################################
 
-q_tgt = 0.25 # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = 0. # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -84,6 +84,7 @@ dta %>%
   mutate(tgt = TE/costpar) %>% 
   ggplot(aes(x = as.factor(xps), y=tgt)) +
   geom_boxplot() +
+  geom_point(stat = "summary", fun = "min", shape = "cross") +
   scale_y_log10() +
   facet_wrap(~ mod, scales="free_y", nrow = 1) +
   theme_bw() +
@@ -95,6 +96,8 @@ dta %>%
 #######################################
 # find the most robust combination
 #######################################
+
+q_tgt = 0. # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -112,7 +115,7 @@ summ=dta %>%
   mutate(tgt = TE/costpar) %>%
   group_by(mod,xps) %>% 
   # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,0.05)) %>% 
+  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
   # group_by(mod) %>%
   # slice_max(agg_tgt,n=3)
