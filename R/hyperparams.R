@@ -97,7 +97,7 @@ dta %>%
 # find the most robust combination
 #######################################
 
-q_tgt = 0. # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = 0.0 # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -129,4 +129,4 @@ summ=dta %>%
   group_by(xps) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
-summ # xps=0.01
+summ
