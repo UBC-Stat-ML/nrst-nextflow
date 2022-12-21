@@ -11,6 +11,7 @@ csvs = sort(
   decreasing=TRUE
 )
 dta  = read.csv(csvs[1])#csvs[1]
+nreps = n_distinct(dta$seed)
 
 # parameters
 TE_min = 5e-4
@@ -46,7 +47,7 @@ dta %>%
 # maximize the p5 across repetitions
 #######################################
 
-q_tgt = 0.0 # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = 3/nreps # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -100,7 +101,7 @@ dta %>%
 # find the most robust combination
 #######################################
 
-q_tgt = 0. # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = 3/nreps # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
