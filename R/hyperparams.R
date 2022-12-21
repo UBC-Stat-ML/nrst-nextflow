@@ -4,10 +4,13 @@ library(scales)
 library(tidyr)
 
 # load the latest consolidated file
-csvs = list.files(path       = file.path("..","deliverables"),
-                  pattern    = '^NRSTExp_hyperparams_\\d+.csv$',
-                  full.names = TRUE)
-dta  = read.csv(max(csvs))#csvs[2])#)
+csvs = sort(
+  list.files(path       = file.path("..","deliverables"),
+             pattern    = '^NRSTExp_hyperparams_\\d+.csv$',
+             full.names = TRUE),
+  decreasing=TRUE
+)
+dta  = read.csv(csvs[1])#csvs[1]
 
 # parameters
 TE_min = 5e-4
@@ -97,7 +100,7 @@ dta %>%
 # find the most robust combination
 #######################################
 
-q_tgt = 0.25 # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = 0.1 # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
