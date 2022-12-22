@@ -47,7 +47,7 @@ dta %>%
 # maximize the p5 across repetitions
 #######################################
 
-q_tgt = 3/nreps # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = .25#3/nreps # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
@@ -101,7 +101,7 @@ dta %>%
 # find the most robust combination
 #######################################
 
-q_tgt = 3/nreps # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = .25 # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
