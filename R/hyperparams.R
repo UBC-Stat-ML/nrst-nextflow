@@ -51,8 +51,8 @@ q_tgt = .25#3/nreps # find combination that maximizes the q_tgt quantile across 
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
-  filter(fun=="mean" & proc == "NRST" & mod %in% c("MRNATrans","XYModel_small")) %>%
-  group_by(mod,cor,gam) %>% 
+  filter(fun=="mean" & proc == "NRST") %>%
+  group_by(cor,gam) %>% 
   summarise(n_valid_TE = sum(TE > TE_min)) %>% 
   ungroup() %>% 
   filter(n_valid_TE == max(n_valid_TE)) %>% 
