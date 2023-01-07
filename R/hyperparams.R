@@ -106,7 +106,7 @@ q_tgt = .25 # find combination that maximizes the q_tgt quantile across reps.
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
   filter(fun=="mean" & proc == "NRST") %>% 
-  group_by(mod,xps) %>% 
+  group_by(xps) %>% 
   summarise(n_valid_TE = sum(TE > TE_min)) %>% 
   ungroup() %>% 
   filter(n_valid_TE == max(n_valid_TE)) %>% 
