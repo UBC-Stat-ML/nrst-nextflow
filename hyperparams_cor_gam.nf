@@ -10,7 +10,7 @@ include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks'
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('hyperparams')
-  mods_ch = Channel.of('XYModel_small', 'MRNATrans')//'HierarchicalModel', 'MvNormal', 'XYModel_small', 'Challenger', 'MRNATrans')
+  mods_ch = Channel.of('XYModel', 'MRNATrans')
   funs_ch = Channel.of('mean')
   cors_ch = Channel.of(0.3, 0.4, 0.5, 0.6, 0.7, 0.8)
   gams_ch = Channel.of(18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0)
