@@ -11,7 +11,7 @@ process setupEnv {
 
 process runExp {
   label 'cluster_full_job'
-  cpus  { workflow.profile == 'standard' ? 1 : (workflow.scriptName == 'benchmark.nf' ? 16 : 8) }
+  cpus  { workflow.profile == 'standard' ? 1 : (workflow.scriptName == 'benchmark.nf' ? 32 : 8) }
   input:
     path jlenv
     each exper
