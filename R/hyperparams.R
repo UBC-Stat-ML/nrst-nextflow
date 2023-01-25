@@ -2,6 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(tidyr)
+library(gridExtra)
 
 # load the latest consolidated file
 csvs = sort(
@@ -20,9 +21,11 @@ TE_min = 5e-4
 # plot: TE/(max V evals) for all combinations and models
 ##############################################################################
 
-cor_gam_labs = labeller(
+labellers = labeller(
   cor = function(co){paste("Max. Corr. =", co)},
-  gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")}
+  gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")},
+  xps = function(xp){paste("Smooth window ≈", xp,"N")},
+  nxps_bin = function(b){paste("Straight-line cost ∈",b)}
 )
 
 dta %>% 
@@ -35,34 +38,83 @@ dta %>%
   scale_x_log10() +
   scale_color_discrete(name="Strategy",
                        labels=c("mean"="Mean", "median"="Median")) +
-  facet_grid(gam ~ mod, labeller = cor_gam_labs, scales="free_x") +
+  facet_grid(gam ~ mod, labeller = labellers, scales="free_x") +
   theme_bw() +
   labs(
     x = "Efficiency = TE/max(number of V(x) evals.)",
     y = "Maximum correlation"
   )
 
+##############################################################################
+# another way of visualizing the same
+##############################################################################
+
+mods  = unique(dta$mod)
+plist = vector("list",length(mods))
+for(i in seq_along(plist)){
+  plist[[i]] = dta %>% 
+    filter(mod == mods[i]) %>% 
+    ggplot(aes(x = as.factor(cor), y = costpar)) +
+    geom_boxplot() +
+    facet_grid(gam ~ xps, labeller = labellers)+#, scales="free_x") +
+    theme_bw() +
+    labs(
+      x = "Maximum correlation",
+      y = "TE/max(number of V(x) evals.)",
+      title=mods[i]
+    )
+}
+grid.arrange(grobs=plist,nrow=1)
+
+##############################################################################
+# summarizing (gam,cor,xps) with unique measure of total nexpls in perfect run
+# TODO: replace estimator with proper nexpls when they are available
+##############################################################################
+
+# bin total nexpls
+nexps_dta = dta %>%
+  group_by(mod, cor, gam, xps) %>% 
+  summarise(nexpls = mean(N*costser/rtser)) %>% # TODO: replace with actual data
+  group_by(mod) %>% 
+  mutate(nxps_bin = cut(nexpls,breaks = 5)) %>% 
+  ungroup
+
+plist = vector("list",length(mods))
+for(i in seq_along(plist)){
+  plist[[i]] = dta %>% 
+    filter(xps == 0.01 & mod == mods[i]) %>% 
+    inner_join(nexps_dta) %>% 
+    ggplot(aes(x = N, y = TE/costpar)) +
+    geom_point() +
+    facet_wrap(~ nxps_bin,ncol=1, labeller = labellers, scales="free_y") +
+    theme_bw() +
+    labs(
+      x = "Size of the grid",
+      y = "TE/max(number of V(x) evals.)",
+      title=mods[i]
+    )
+}
+grid.arrange(grobs=plist,nrow=1)
+
 #######################################
 # find the most robust combination:
 # maximize the p5 across repetitions
 #######################################
 
-q_tgt = .25#3/nreps # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = .0#3/nreps # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
-  filter(fun=="mean" & proc == "NRST") %>%
-  group_by(cor,gam) %>% 
+  group_by(fun,cor,gam,xps) %>% 
   summarise(n_valid_TE = sum(TE > TE_min)) %>% 
   ungroup() %>% 
   filter(n_valid_TE == max(n_valid_TE)) %>% 
   select(-n_valid_TE)
 
 summ=dta %>% 
-  filter(fun == "mean" & proc == "NRST") %>% 
   inner_join(valid_combs) %>% 
-  mutate(tgt = TE/costpar) %>%
-  group_by(mod,cor,gam) %>% 
+  mutate(tgt = 1/costpar) %>%
+  group_by(mod,fun,cor,gam,xps) %>% 
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
@@ -75,7 +127,7 @@ summ=dta %>%
       select(max_agg_tgt=agg_tgt),
     by="mod") %>% 
   mutate(ratio = agg_tgt/max_agg_tgt) %>% 
-  group_by(cor,gam) %>% 
+  group_by(fun,cor,gam,xps) %>% 
   summarise(mean_ratio=mean(ratio)) %>% 
   arrange(desc(mean_ratio))
 summ
