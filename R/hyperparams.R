@@ -15,7 +15,7 @@ dta  = read.csv(csvs[1])#csvs[1]
 nreps = n_distinct(dta$seed)
 
 # parameters
-TE_min = 5e-4
+TE_min = 1e-6
 
 ##############################################################################
 # plot: TE/(max V evals) for all combinations and models
@@ -101,17 +101,19 @@ grid.arrange(grobs=plist,nrow=1)
 # maximize the p5 across repetitions
 #######################################
 
-q_tgt = .0#3/nreps # find combination that maximizes the q_tgt quantile across reps.
+q_tgt = .25#3/nreps # find combination that maximizes the q_tgt quantile across reps.
 
 # find combinations that never gave TEs lower than limit
 valid_combs = dta %>% 
   group_by(fun,cor,gam,xps) %>% 
   summarise(n_valid_TE = sum(TE > TE_min)) %>% 
   ungroup() %>% 
+  arrange(n_valid_TE) %>% 
   filter(n_valid_TE == max(n_valid_TE)) %>% 
   select(-n_valid_TE)
 
 summ=dta %>% 
+  # filter(mod != "HierarchicalModel") %>% 
   inner_join(valid_combs) %>% 
   mutate(tgt = 1/costpar) %>%
   group_by(mod,fun,cor,gam,xps) %>% 
@@ -132,57 +134,16 @@ summ=dta %>%
   arrange(desc(mean_ratio))
 summ
 
-##############################################################################
-# xps-only 
-##############################################################################
 
 dta %>% 
-  mutate(tgt = TE/costpar) %>% 
-  ggplot(aes(x = as.factor(xps), y=tgt)) +
-  geom_boxplot() +
-  geom_point(stat = "summary", fun = "min", shape = "cross") +
-  scale_y_log10() +
-  facet_wrap(~ mod, scales="free_y", nrow = 1) +
-  theme_bw() +
-  labs(
-    x = "Sampler",
-    y = "Efficiency = TE/max(number of V(x) evals.)"
-  )
+  filter(TE<=0.1) %>% 
+  ggplot(aes(x=TE,y=xi,color=fun))+
+  geom_point()+
+  facet_wrap(~mod)
 
-#######################################
-# find the most robust combination
-#######################################
-
-q_tgt = .25 # find combination that maximizes the q_tgt quantile across reps.
-
-# find combinations that never gave TEs lower than limit
-valid_combs = dta %>% 
-  filter(fun=="mean" & proc == "NRST") %>% 
-  group_by(xps) %>% 
-  summarise(n_valid_TE = sum(TE > TE_min)) %>% 
+xidta = dta %>%
+  filter(mod=="MRNATrans",xps==0.1) %>% 
+  group_by(fun,cor,gam) %>% 
+  summarise(xi=mean(xi)) %>% 
   ungroup() %>% 
-  filter(n_valid_TE == max(n_valid_TE)) %>% 
-  select(-n_valid_TE)
-
-# print the combination that achieves the most consistent performance
-summ=dta %>% 
-  filter(fun == "mean" & proc == "NRST") %>% 
-  inner_join(valid_combs) %>% 
-  mutate(tgt = TE/costpar) %>%
-  group_by(mod,xps) %>% 
-  # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
-  ungroup() %>% 
-  # group_by(mod) %>%
-  # slice_max(agg_tgt,n=3)
-  inner_join(
-    (.) %>% 
-      group_by(mod) %>%  
-      slice_max(agg_tgt,n=1) %>% 
-      select(max_agg_tgt=agg_tgt),
-    by="mod") %>% 
-  mutate(ratio = agg_tgt/max_agg_tgt) %>% 
-  group_by(xps) %>% 
-  summarise(mean_ratio=mean(ratio)) %>% 
-  arrange(desc(mean_ratio))
-summ
+  arrange(xi)

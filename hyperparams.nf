@@ -12,9 +12,9 @@ workflow {
   exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel')
   funs_ch = Channel.of('mean', 'median')
-  cors_ch = Channel.of(0.85, 0.9, 0.95, 0.98)
+  cors_ch = Channel.of(0.8, 0.85, 0.9, 0.95, 0.99)
   gams_ch = Channel.of(10.0, 15.0, 20.0, 25.0, 30.0)
-  xpss_ch = Channel.of(0.01, 0.05, 0.1)
+  xpss_ch = Channel.of(0.05, 0.1)
   seeds_ch= Channel.of(2798, 7302, 8054, 552, 9429, 6903, 5218, 1208, 8124, 5842, 1198, 9168, 968, 5661, 9895, 4327, 3579, 4537, 7783, 1746, 4851, 1971, 6012, 8604, 7851, 2796, 5410, 1884, 765, 9444)
 
   // run process
