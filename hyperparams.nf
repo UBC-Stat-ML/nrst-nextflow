@@ -12,10 +12,10 @@ workflow {
   exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel')
   funs_ch = Channel.of('mean', 'median')
-  cors_ch = Channel.of(0.75, 0.8, 0.85, 0.9, 0.95, 0.99)
-  gams_ch = Channel.of(5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0)
+  cors_ch = Channel.of(0.5, 0.6, 0.7, 0.8, 0.9, 0.95)
+  gams_ch = Channel.of(1.0, 2.0, 4.0, 8.0, 16.0, 32.0)
   xpss_ch = Channel.of(0.05, 0.1)
-  seeds_ch= Channel.of(2798, 7302, 8054, 552, 9429, 6903, 5218, 1208, 8124, 5842, 1198, 9168, 968, 5661, 9895, 4327, 3579, 4537, 7783, 1746, 4851, 1971, 6012, 8604, 7851, 2796, 5410, 1884, 765, 9444)
+  seeds_ch= Channel.of(7008, 26, 4277, 2986, 3241, 7194, 7496, 2461, 9521, 2639, 8970, 4330, 5412, 799, 6488, 4729, 1018, 2792, 5003, 9216, 9989, 6323, 3802, 5635, 351, 8908, 5564, 2370, 6872, 1420)
 
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
