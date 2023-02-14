@@ -34,7 +34,7 @@ labellers = labeller(
 # can be thought of asking for 1-1/30 ~ 97% prob that for any model and seed,
 # the config will have these nice properties
 TE_min = 1e-6 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.45 # for a>0, xi < a => E[Z^(1/a)] < infty
+xi_max = 0.50 # for a>0, xi < a => E[Z^(1/a)] < infty
 cost_var = quote(costser)
 
 valid_combs = dta %>% 
@@ -95,9 +95,9 @@ dta %>%
 # 5) Select combination with lowest max(cost_ratio)
 #######################################
 
-q_tgt = .75
+q_tgt = 1.0
 summ=dta %>% 
-  filter(mod != "HierarchicalModel") %>%
+  # filter(mod != "HierarchicalModel") %>%
   inner_join(valid_combs) %>% 
   mutate(tgt = eval(cost_var)) %>%
   group_by(mod,fun,cor,gam,xps) %>% 
@@ -112,11 +112,11 @@ summ=dta %>%
       slice_min(agg_tgt,n=1) %>% 
       select(min_agg_tgt=agg_tgt),
     by="mod") %>% 
-  mutate(cost_ratio = agg_tgt/min_agg_tgt) %>% 
+  mutate(regret = agg_tgt-min_agg_tgt) %>% # using abs diff prioritizes harder models. ratio would equalize them
   group_by(fun,cor,gam,xps) %>% 
-  summarise(max_cost_ratio=max(cost_ratio),
+  summarise(max_regret=max(regret),
             nmods = n()) %>% 
-  arrange(max_cost_ratio)
+  arrange(max_regret)
 summ
 
 ##############################################################################
