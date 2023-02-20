@@ -1,7 +1,7 @@
 using Pkg
 
-# create a new julia environment
-Pkg.activate("jlenv")
+Pkg.Registry.update() # update registry
+Pkg.activate("jlenv") # create a dedicated julia environment
 
 # install our packages
 # must be done like this in a single call to add to avoid issues with resolving
