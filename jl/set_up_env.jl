@@ -1,6 +1,6 @@
 using Pkg
 
-Pkg.Registry.update() # update registry
+Pkg.update()          # update registry and local environment
 Pkg.activate("jlenv") # create a dedicated julia environment
 
 # install our packages
