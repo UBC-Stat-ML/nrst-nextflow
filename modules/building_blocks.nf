@@ -19,6 +19,7 @@ process runExp {
     each fun
     each maxcor
     each gamma
+    each xpl
     each xps
     each seed
   output:
