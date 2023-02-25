@@ -35,16 +35,49 @@ labellers = labeller(
 # the config will have these nice properties
 TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
 xi_max = 0.50 # for a>0, xi < a => E[Z^(1/a)] < infty
-cost_var = quote(costser)
 
 valid_combs = dta %>% 
   mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
-  group_by(fun,cor,gam,xps) %>% 
+  group_by(fun,cor,gam,xpl,xps) %>% 
   summarise(n_valid_TE = sum(is_valid)) %>% 
   ungroup() %>% 
   # arrange(n_valid_TE) %>% 
   filter(n_valid_TE == max(n_valid_TE)) %>% 
   select(-n_valid_TE)
+
+#######################################
+# find the most robust combination:
+# 1) For each (valid) combination, get quantile of cost_var across repetitions
+# 2) For each model, find the minimal cost; i.e., cost associated with the config optimal for this model
+# 3) For each model-combination, compute cost_ratio = cost/min(cost)
+# 4) For each combination, compute max(cost_ratio) across models
+# 5) Select combination with lowest max(cost_ratio)
+#######################################
+
+cost_var = quote(costser)
+q_tgt = 1.0
+summ=dta %>% 
+  # filter(mod != "HierarchicalModel") %>%
+  inner_join(valid_combs) %>% 
+  mutate(tgt = eval(cost_var)) %>%
+  group_by(mod,fun,cor,gam,xpl,xps) %>% 
+  # compute aggregates over replications (seeds)
+  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
+  ungroup() %>% 
+  # group_by(mod) %>%
+  # slice_min(agg_tgt,n=3)
+  inner_join(
+    (.) %>% 
+      group_by(mod) %>%  
+      slice_min(agg_tgt,n=1,with_ties=FALSE) %>% 
+      select(min_agg_tgt=agg_tgt),
+    by="mod") %>%
+  mutate(regret = agg_tgt-min_agg_tgt) %>% # using abs diff prioritizes harder models. ratio would equalize them
+  group_by(fun,cor,gam,xpl,xps) %>% 
+  summarise(max_regret=max(regret),
+            nmods = n()) %>% 
+  arrange(max_regret)
+summ
 
 ##############################################################################
 # plot: distribution of target measure for all combinations and models
@@ -73,8 +106,8 @@ valid_combs = dta %>%
 
 # similar but simpler by filtering on xps
 dta %>% 
-  filter(xps==min(dta$xps)) %>% 
-  inner_join(valid_combs) %>% 
+  filter(xpl==summ$xpl[1] & xps==summ$xps[1]) %>% 
+  inner_join(valid_combs) %>%
   ggplot(aes(x = as.factor(cor), y = eval(cost_var), color = fun)) +
   geom_boxplot() +
   scale_color_discrete(name="Strategy",
@@ -85,39 +118,6 @@ dta %>%
     x = "Correlation bound",
     y = cost_var_label(cost_var)
   )
-
-#######################################
-# find the most robust combination:
-# 1) For each (valid) combination, get quantile of cost_var across repetitions
-# 2) For each model, find the minimal cost; i.e., cost associated with the config optimal for this model
-# 3) For each model-combination, compute cost_ratio = cost/min(cost)
-# 4) For each combination, compute max(cost_ratio) across models
-# 5) Select combination with lowest max(cost_ratio)
-#######################################
-
-q_tgt = 1.0
-summ=dta %>% 
-  # filter(mod != "HierarchicalModel") %>%
-  inner_join(valid_combs) %>% 
-  mutate(tgt = eval(cost_var)) %>%
-  group_by(mod,fun,cor,gam,xps) %>% 
-  # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
-  ungroup() %>% 
-  # group_by(mod) %>%
-  # slice_min(agg_tgt,n=3)
-  inner_join(
-    (.) %>% 
-      group_by(mod) %>%  
-      slice_min(agg_tgt,n=1) %>% 
-      select(min_agg_tgt=agg_tgt),
-    by="mod") %>% 
-  mutate(regret = agg_tgt-min_agg_tgt) %>% # using abs diff prioritizes harder models. ratio would equalize them
-  group_by(fun,cor,gam,xps) %>% 
-  summarise(max_regret=max(regret),
-            nmods = n()) %>% 
-  arrange(max_regret)
-summ
 
 ##############################################################################
 # correlation costset v. costpar: very uncorrelated within a combination
