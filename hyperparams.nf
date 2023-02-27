@@ -12,7 +12,7 @@ workflow {
   exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel')
   funs_ch = Channel.of('mean', 'median')
-  cors_ch = Channel.of(0.80, 0.85, 0.90, 0.95)
+  cors_ch = Channel.of(0.80, 0.85, 0.90, 0.95, 0.99)
   gams_ch = Channel.of(1.0, 1.5, 2.0, 2.5)
   xpls_ch = Channel.of('SSSO', 'SSD')
   xpss_ch = Channel.of(0.00001)
