@@ -16,7 +16,7 @@ nreps = n_distinct(dta$seed)
 
 # labellers
 cost_var_label = function(s){
-  paste0(ifelse(s == quote(costpar),"Max","Sum"),"(exploration steps)")
+  paste0(ifelse(s == quote(costpar),"Max","Sum"),"(number of V evaluations)")
 }
 labellers = labeller(
   cor = function(co){paste("Max. Corr. =", co)},
@@ -34,7 +34,7 @@ labellers = labeller(
 # can be thought of asking for 1-1/30 ~ 97% prob that for any model and seed,
 # the config will have these nice properties
 TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.50 # for a>0, xi < a => E[Z^(1/a)] < infty
+xi_max = 0.40 # for a>0, xi < a => E[Z^(1/a)] < infty
 
 valid_combs = dta %>% 
   mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
@@ -110,6 +110,7 @@ dta %>%
   inner_join(valid_combs) %>%
   ggplot(aes(x = as.factor(cor), y = eval(cost_var), color = fun)) +
   geom_boxplot() +
+  scale_y_log10() +
   scale_color_discrete(name="Strategy",
                        labels=c("mean"="Mean", "median"="Median")) +
   facet_grid(mod~gam, labeller = labellers, scales="free") +
