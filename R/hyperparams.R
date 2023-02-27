@@ -34,7 +34,7 @@ labellers = labeller(
 # can be thought of asking for 1-1/30 ~ 97% prob that for any model and seed,
 # the config will have these nice properties
 TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.40 # for a>0, xi < a => E[Z^(1/a)] < infty
+xi_max = 0.45 # for a>0, xi < a => E[Z^(1/a)] < infty
 
 valid_combs = dta %>% 
   mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
@@ -64,8 +64,8 @@ summ=dta %>%
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
-  # group_by(mod) %>%
-  # slice_min(agg_tgt,n=3)
+  group_by(mod) %>%
+  slice_min(agg_tgt,n=3) %>% print
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
@@ -177,3 +177,4 @@ for(i in seq_along(plist)){
     )
 }
 grid.arrange(grobs=plist,nrow=1)
+
