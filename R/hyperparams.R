@@ -34,16 +34,30 @@ labellers = labeller(
 # can be thought of asking for 1-1/30 ~ 97% prob that for any model and seed,
 # the config will have these nice properties
 TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.45 # for a>0, xi < a => E[Z^(1/a)] < infty
+xi_max = 0.45  # for a>0, xi < a => E[Z^(1/a)] < infty
 
-valid_combs = dta %>% 
+dta_is_valid = dta %>% 
   mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
   group_by(fun,cor,gam,xpl,xps) %>% 
-  summarise(n_valid_TE = sum(is_valid)) %>% 
+  summarise(n_valid = sum(is_valid)) %>% 
   ungroup() %>% 
-  # arrange(n_valid_TE) %>% 
-  filter(n_valid_TE == max(n_valid_TE)) %>% 
-  select(-n_valid_TE)
+  # arrange(n_valid) %>% 
+  mutate(is_valid = n_valid == max(n_valid)) %>% 
+  select(-n_valid)
+
+# filter combinations dominated by invalid combination according to cor
+# intuition: lower cor bound should not make TE lower nor the tails of nvisits(N) heavier
+valid_combs = dta_is_valid %>% 
+  filter(is_valid) %>% 
+  select(-is_valid) %>% 
+  left_join(
+    dta_is_valid %>% 
+      filter(!is_valid) 
+  , by = c("fun","gam","xpl","xps")) %>% 
+  mutate(dominated_by_invalid = !is.na(cor.y) & (cor.y < cor.x) & !is_valid) %>% 
+  filter(!dominated_by_invalid) %>% 
+  rename(cor=cor.x) %>% 
+  select(-cor.y, -is_valid, -dominated_by_invalid)
 
 #######################################
 # find the most robust combination:
@@ -57,15 +71,15 @@ valid_combs = dta %>%
 cost_var = quote(costser)
 q_tgt = 1.0
 summ=dta %>% 
-  # filter(mod != "HierarchicalModel") %>%
+  # filter(mod != "XYModel") %>%
   inner_join(valid_combs) %>% 
   mutate(tgt = eval(cost_var)) %>%
   group_by(mod,fun,cor,gam,xpl,xps) %>% 
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
-  group_by(mod) %>%
-  slice_min(agg_tgt,n=3) %>% print
+  # group_by(mod) %>%
+  # slice_min(agg_tgt,n=3) %>% print
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
