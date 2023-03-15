@@ -1,7 +1,4 @@
-library(dplyr)
-library(ggplot2)
-library(scales)
-library(tidyr)
+source("utils.R")
 library(gridExtra)
 
 # load the latest consolidated file
@@ -11,19 +8,7 @@ csvs = sort(
              full.names = TRUE),
   decreasing=TRUE
 )
-dta  = read.csv(csvs[1])#csvs[1]
-nreps = n_distinct(dta$seed)
-
-# labellers
-cost_var_label = function(s){
-  paste0(ifelse(s == quote(costpar),"Max","Sum"),"(number of V evaluations)")
-}
-labellers = labeller(
-  cor = function(co){paste("Max. Corr. =", co)},
-  gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")},
-  xps = function(xp){paste0("Smooth window ≈ ", xp,"N")},
-  nxps_bin = function(b){paste("Straight-line cost ∈",b)}
-)
+dta  = read.csv(csvs[1])
 
 #######################################
 # extract "valid combinations"
@@ -96,42 +81,29 @@ summ=dta %>%
 # plot: distribution of target measure for all combinations and models
 ##############################################################################
 
-# mods  = unique(dta$mod)
-# plist = vector("list",length(mods))
-# for(i in seq_along(plist)){
-#   plist[[i]] = dta %>% 
-#     filter(mod == mods[i]) %>% 
-#     inner_join(valid_combs) %>% 
-#     ggplot(aes(x = as.factor(cor), y = costpar, color = fun)) +
-#     geom_boxplot() +
-#     scale_color_discrete(name="Strategy",
-#                          labels=c("mean"="Mean", "median"="Median")) +
-#     facet_grid(gam ~ xps, labeller = labellers, scales="free") +
-#     theme_bw() +
-#     {if(i<length(mods)) {theme(legend.position = "none")}} +
-#     labs(
-#       x = "Correlation bound",
-#       y = "max(total exploration steps)",
-#       title=mods[i]
-#     )
-# }
-# grid.arrange(grobs=plist,nrow=1)
-
-# similar but simpler by filtering on xps
+# note: fixes xpl and xps
 dta %>% 
   filter(xpl==summ$xpl[1] & xps==summ$xps[1]) %>% 
   inner_join(valid_combs) %>%
   ggplot(aes(x = as.factor(cor), y = eval(cost_var), color = fun)) +
   geom_boxplot() +
-  scale_y_log10() +
+  scale_y_log10(
+    breaks = log10_breaks,
+    labels = scales::trans_format("log10", scales::label_math(format=function(x){sprintf("%.1f",x)}))
+  ) +
   scale_color_discrete(name="Strategy",
                        labels=c("mean"="Mean", "median"="Median")) +
   facet_grid(mod~gam, labeller = labellers, scales="free") +
   theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.margin    = margin(t=-5),
+    )+
   labs(
     x = "Correlation bound",
     y = cost_var_label(cost_var)
   )
+ggsave("hyperparams.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
 ##############################################################################
 # correlation costset v. costpar: very uncorrelated within a combination

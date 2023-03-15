@@ -12,8 +12,8 @@ workflow {
   exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel', 'Titanic')
   funs_ch = Channel.of('mean', 'median')
-  cors_ch = Channel.of(0.85, 0.90, 0.95, 0.99)
-  gams_ch = Channel.of(2.0, 2.5, 3.0, 3.5)
+  cors_ch = Channel.of(0.90, 0.95, 0.99, 1, 2, 3) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
+  gams_ch = Channel.of(2.0, 2.5, 3.0)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)
   seeds_ch= Channel.of(7634,805,1128,599,9766,5040,6523,9883,8405,5618,9924,3739,5404,7022,5301,8870,7456,3198,333,4594,2911,2764,4225,815,5427,65,1164,3509,7469,7627)
