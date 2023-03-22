@@ -58,13 +58,14 @@ q_tgt = 1.0
 summ=dta %>% 
   # filter(mod != "XYModel") %>%
   inner_join(valid_combs) %>% 
+  filter(cor>=1) %>% 
   mutate(tgt = eval(cost_var)) %>%
   group_by(mod,fun,cor,gam,xpl,xps) %>% 
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
-  # group_by(mod) %>%
-  # slice_min(agg_tgt,n=3) %>% print
+  group_by(mod) %>%
+  slice_min(agg_tgt,n=3) %>% print
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
@@ -100,7 +101,7 @@ dta %>%
     legend.margin    = margin(t=-5),
     )+
   labs(
-    x = "Correlation bound",
+    x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
     y = cost_var_label(cost_var)
   )
 ggsave("hyperparams.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
