@@ -12,8 +12,8 @@ workflow {
   exps_ch = Channel.of('TE_ELE')
   mods_ch = Channel.of('Challenger', 'XYModel', 'MRNATrans', 'HierarchicalModel')
   funs_ch = Channel.of('mean')
-  cors_ch = Channel.of(1e-3, 1e-2, 1e-1, 1e0) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
-  gams_ch = Channel.of(2.0, 4.0, 6.0, 8.0)
+  cors_ch = Channel.of(0.01, 0.1, 0.25, 0.5, 1) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
+  gams_ch = Channel.of(2.5, 5.0, 10.0, 20.0)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)
   seeds_ch= Channel.of(7634,805,1128,599,9766,5040,6523,9883,8405,5618,9924,3739,5404,7022,5301,8870,7456,3198,333,4594,2911,2764,4225,815,5427,65,1164,3509,7469,7627)
