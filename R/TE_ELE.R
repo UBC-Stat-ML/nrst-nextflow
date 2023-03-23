@@ -32,7 +32,7 @@ dta %>%
   ggplot(aes(x = fcor, y = TE)) +
   geom_boxplot() +
   geom_hline(aes(yintercept=TE_ELE), linetype="dashed")+
-  facet_wrap(~mod, labeller = labellers, scales="free") +
+  facet_wrap(~mod, labeller = labellers, nrow=1) +
   theme_bw() +
   theme(
     legend.position = "bottom",
