@@ -12,7 +12,7 @@ workflow {
   exps_ch = Channel.of('benchmark')
   mods_ch = Channel.of('HierarchicalModel', 'XYModel', 'Challenger', 'MRNATrans', 'Titanic')
   funs_ch = Channel.of('mean')
-  cors_ch = Channel.of(0.95)
+  cors_ch = Channel.of(1)
   gams_ch = Channel.of(2.5)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)

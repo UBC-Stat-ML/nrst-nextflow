@@ -25,39 +25,40 @@ TE_ELEs = dta %>%
 ##############################################################################
 
 # cor
-dta %>%
+pcor = dta %>%
   filter(gam == max(gam)) %>% 
   inner_join(TE_ELEs, by="mod") %>%
   mutate(fcor = factor(cor,levels=sort(unique(cor),decreasing = TRUE))) %>% 
   ggplot(aes(x = fcor, y = TE)) +
   geom_boxplot() +
   geom_hline(aes(yintercept=TE_ELE), linetype="dashed")+
-  facet_wrap(~mod, labeller = labellers, nrow=1) +
+  facet_wrap(~mod, labeller = labellers, scales = "free_y", ncol=1) +
   theme_bw() +
   theme(
     legend.position = "bottom",
     legend.margin    = margin(t=-5),
   )+
   labs(
-    x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
+    x = paste0("Correlation bound (grid size ≈ ", 2*max(dta$gam),"Λ)"),
     y = "Tour Effectiveness"
   )
 
 # gam
-dta %>%
+pgam = dta %>%
   filter(cor == min(cor)) %>% 
   inner_join(TE_ELEs,by="mod") %>% 
   ggplot(aes(x = as.factor(gam), y = TE)) +
   geom_boxplot() +
   geom_hline(aes(yintercept=TE_ELE), linetype="dashed")+
-  facet_wrap(~mod, labeller = labellers, nrow=1) +
+  facet_wrap(~mod, labeller = labellers, scales = "free_y", ncol=1) +
   theme_bw() +
   theme(
     legend.position = "bottom",
     legend.margin    = margin(t=-5),
   )+
   labs(
-    x = "γ (grid size ≈ 2γΛ)",
+    x = paste0("Grid size / 2Λ (correlation ≤ ", min(dta$cor),")"),
     y = "Tour Effectiveness"
   )
-# ggsave("TE_ELE.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
+pboth = grid.arrange(pcor,pgam,ncol=2)
+ggsave("TE_ELE.pdf", pboth,width=6, height = 4, device = cairo_pdf) # device needed on Linux to print unicode correctly
