@@ -56,7 +56,7 @@ valid_combs = dta_is_valid %>%
 cost_var = quote(costser)
 q_tgt = 1.0
 summ=dta %>% 
-  # filter(mod != "XYModel") %>%
+  filter(fun == "mean" & cor>=1) %>%
   inner_join(valid_combs) %>% 
   filter(cor>=1) %>% 
   mutate(tgt = eval(cost_var)) %>%
@@ -64,8 +64,8 @@ summ=dta %>%
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
   ungroup() %>% 
-  group_by(mod) %>%
-  slice_min(agg_tgt,n=3) %>% print
+  # group_by(mod) %>%
+  # slice_min(agg_tgt,n=3) %>% print
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
@@ -104,7 +104,7 @@ dta %>%
     x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
     y = cost_var_label(cost_var)
   )
-ggsave("hyperparams.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
+ggsave("hyperparams_all.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
 ##############################################################################
 # correlation costset v. costpar: very uncorrelated within a combination

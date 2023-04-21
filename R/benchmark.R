@@ -10,7 +10,7 @@ dta  = read.csv(max(csvs))
 # plot: TE/(max V evals) for all models and real samplers
 ##############################################################################
 
-cost_var = quote(costpar)
+cost_var = quote(costser)
 dta %>% 
   mutate(tgt = eval(cost_var)) %>% 
   ggplot(aes(x = proc, y=tgt)) +
