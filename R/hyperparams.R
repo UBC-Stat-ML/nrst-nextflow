@@ -22,6 +22,7 @@ TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates T
 xi_max = 0.50 # for a>0, xi < a => E[Z^(1/a)] < infty
 
 dta_is_valid = dta %>% 
+  # filter(!(mod %in% c("Funnel", "ThresholdWeibull"))) %>% 
   mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
   group_by(fun,cor,gam,xpl,xps) %>% 
   summarise(n_valid = sum(is_valid)) %>% 
@@ -56,9 +57,7 @@ valid_combs = dta_is_valid %>%
 cost_var = quote(costser)
 q_tgt = 1.0
 summ=dta %>% 
-  filter(fun == "mean" & cor>=1) %>%
   inner_join(valid_combs) %>% 
-  filter(cor>=1) %>% 
   mutate(tgt = eval(cost_var)) %>%
   group_by(mod,fun,cor,gam,xpl,xps) %>% 
   # compute aggregates over replications (seeds)
