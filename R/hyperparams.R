@@ -9,26 +9,28 @@ csvs = sort(
   decreasing=TRUE
 )
 dta  = read.csv(csvs[1])
+n_reps = dta %>% 
+  select(mod,seed) %>% 
+  apply(2, n_distinct) %>% 
+  prod
 
 #######################################
-# extract "valid combinations"
+# extract "valid combinations"; i.e., such that
+#    1) all seeds must have finished without error
+#    2) TEs higher than limit on all seeds
+#    3) mean(xi) > xi_max, mean over seeds
 #######################################
 
-# find combinations that, across 30 reps, *never* gave 1) TEs lower than limit 
-# and 2) xi > xi_max.
-# can be thought of asking for 1-1/30 ~ 97% prob that for any model and seed,
-# the config will have these nice properties
-TE_min = 1e-4 # currently no experiment below this. Note: ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.50 # for a>0, xi < a => E[Z^(1/a)] < infty
-
+TE_min = 1e-4 # ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
+xi_max = 0.52 # wiggle room to .5 limit. note: xi is tail index for number of visits to top level. recall: for a>0, xi < a => E[Z^(1/a)] < infty
 dta_is_valid = dta %>% 
-  # filter(!(mod %in% c("Funnel", "ThresholdWeibull"))) %>% 
-  mutate(is_valid = (TE > TE_min & xi < xi_max)) %>%
+  group_by(fun,cor,gam,xpl,xps,mod) %>%
+  mutate(mean_xi = mean(xi, na.rm = TRUE), # NAs are due to runs that don't visit the top level
+         is_valid = (TE >= TE_min & n_vis_top>0 & mean_xi <= xi_max)) %>%
   group_by(fun,cor,gam,xpl,xps) %>% 
   summarise(n_valid = sum(is_valid)) %>% 
-  ungroup() %>% 
-  # arrange(n_valid) %>% 
-  mutate(is_valid = n_valid == max(n_valid)) %>% 
+  ungroup() %>%
+  mutate(is_valid = n_valid == n_reps) %>% 
   select(-n_valid)
 
 # filter combinations dominated by invalid combination according to cor
@@ -40,10 +42,11 @@ valid_combs = dta_is_valid %>%
     dta_is_valid %>% 
       filter(!is_valid) 
   , by = c("fun","gam","xpl","xps")) %>% 
-  mutate(dominated_by_invalid = !is.na(cor.y) & (cor.y < cor.x) & !is_valid) %>% 
+  mutate(dominated_by_invalid = cor.x < 1 & !is.na(cor.y) & (cor.y < cor.x) & !is_valid) %>% 
   filter(!dominated_by_invalid) %>% 
   rename(cor=cor.x) %>% 
-  select(-cor.y, -is_valid, -dominated_by_invalid)
+  select(-cor.y, -is_valid, -dominated_by_invalid) %>% 
+  unique()
 
 #######################################
 # find the most robust combination:
@@ -55,27 +58,54 @@ valid_combs = dta_is_valid %>%
 #######################################
 
 cost_var = quote(costser)
-q_tgt = 1.0
-summ=dta %>% 
+q_tgt    = 1.0
+
+# compute cost for each mod x config combination, find best config for each mod
+dta_agg_tgt=dta %>% 
   inner_join(valid_combs) %>% 
   mutate(tgt = eval(cost_var)) %>%
   group_by(mod,fun,cor,gam,xpl,xps) %>% 
   # compute aggregates over replications (seeds)
   summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
-  ungroup() %>% 
-  # group_by(mod) %>%
-  # slice_min(agg_tgt,n=3) %>% print
+  ungroup() %>%
   inner_join(
     (.) %>% 
       group_by(mod) %>%  
       slice_min(agg_tgt,n=1,with_ties=FALSE) %>% 
       select(min_agg_tgt=agg_tgt),
-    by="mod") %>%
-  mutate(regret = agg_tgt-min_agg_tgt) %>% # using abs diff prioritizes harder models. ratio would equalize them
+    by="mod"
+  ) %>% 
+  mutate(regret = agg_tgt-min_agg_tgt) #%>% # using abs diff prioritizes harder models. ratio normalizes them
+  # group_by(mod) %>% slice_min(agg_tgt,n=3) %>% print(n=Inf)
+  
+# select the config with least regret
+summ = dta_agg_tgt %>% 
   group_by(fun,cor,gam,xpl,xps) %>% 
-  summarise(max_regret=max(regret),
+  summarise(agg_regret=max(regret),
             nmods = n()) %>% 
-  arrange(max_regret) %>% print
+  arrange(agg_regret) %>% print
+
+# inspect config
+summ[1,] %>% inner_join(dta_agg_tgt) %>% arrange(desc(regret))
+
+##############################################################################
+# plot: all correlations for fixed else
+##############################################################################
+
+dta_agg_tgt %>% 
+  filter(gam== 3 & fun == "mean") %>% 
+  ggplot(aes(x = as.factor(cor), y = agg_tgt/min_agg_tgt)) +
+  geom_point() +
+  facet_wrap(~mod, labeller = labellers) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.margin    = margin(t=-5),
+  )+
+  labs(
+    x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
+    y = cost_var_label(cost_var)
+  )
 
 ##############################################################################
 # plot: distribution of target measure for all combinations and models

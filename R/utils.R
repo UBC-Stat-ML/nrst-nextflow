@@ -9,7 +9,7 @@ cost_var_label = function(s){
 }
 labellers = labeller(
   cor = function(co){paste("Max. Corr. =", co)},
-  gam = function(ga){paste0("γ = ",ga," (N ≈ ", 2*as.integer(ga),"Λ)")},
+  gam = function(ga){paste0("γ = ",ga," (N ≈ ", round(2*as.double(ga)),"Λ)")},
   xps = function(xp){paste0("Smooth window ≈ ", xp,"N")},
   nxps_bin = function(b){paste("Straight-line cost ∈",b)}
 )
