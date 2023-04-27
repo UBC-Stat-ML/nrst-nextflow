@@ -111,7 +111,7 @@ dta %>%
   inner_join(summ[1,c("fun", "cor")], by=c("fun", "cor") ) %>%
   ggplot(aes(x = as.factor(gam), y = eval(cost_var))) +
   geom_boxplot() +
-  my_scale_y_log10 +
+  my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
   theme_bw() +
   theme(
@@ -141,7 +141,7 @@ dta %>%
   ggplot(aes(x = fcor, y = eval(cost_var), color=is_fixed)) +
   geom_boxplot(show.legend=FALSE) +
   scale_color_manual(name="Exploration steps",values=c("red", "black"))+
-  my_scale_y_log10 +
+  my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
   theme_bw() +
   theme(
@@ -170,7 +170,7 @@ summ_other = gen_dta_agg_tgt(cost_var_other) %>%
             nmods = n()) %>% 
   arrange(agg_regret)
 
-make_fun_plot = function(plot_cost_var,with_strip=TRUE){
+make_fun_plot = function(plot_cost_var,bottom=FALSE){
   cost_var_name_short = ifelse(plot_cost_var==quote(costser),"Sum total","Maximum")
   dta %>% 
     inner_join(valid_combs) %>%
@@ -178,7 +178,7 @@ make_fun_plot = function(plot_cost_var,with_strip=TRUE){
       bind_rows(summ[1,],summ_other[1,])[,c("fun", "cor", "gam")],
       by=c("fun", "cor", "gam") ) %>%
     ggplot(aes(x = fun, y = eval(plot_cost_var))) +
-    geom_boxplot() +
+    geom_boxplot(width=0.5,lwd=0.25) +
     scale_x_discrete(labels = c("mean"="Mean","median"="Med")) +
     my_scale_y_log10(digits=0) +
     coord_flip()+
@@ -188,22 +188,28 @@ make_fun_plot = function(plot_cost_var,with_strip=TRUE){
       scales="free_x"
     )+
     theme_bw() +
-    {if(!with_strip){ theme(strip.text.x = element_blank())}}+
+    {if(bottom){
+      theme(strip.text.x = element_blank(),
+            plot.margin = margin(0, 0, 0, 0, "pt"))
+    }else{
+      theme(axis.title.x = element_blank(),
+            plot.margin = margin(0, 0, 5.5, 0, "pt"))
+    }}+
     theme(
       legend.position  = "bottom",
       legend.margin    = margin(t=-5),
       strip.background = element_blank(),
       # panel.spacing    = unit(0, "lines"),
       # strip.placement  = "outside",
-      axis.title.y = element_blank(),
-      axis.title.x = element_blank()
-    )
+      axis.title.y = element_blank()
+    ) +
+    labs(y="Cost")
 }
 p1 = make_fun_plot(cost_var)
-p2 = make_fun_plot(cost_var_other,FALSE)
-prop_p1 = 0.54
+p2 = make_fun_plot(cost_var_other,TRUE)
+prop_p1 = 0.53
 p=plot_grid(p1, p2, align = "v", nrow=2,rel_heights = c(prop_p1, 1-prop_p1))
-ggsave("hyperparams_fun.pdf", p, width=6, height = 3)
+ggsave("hyperparams_fun.pdf", p, width=6, height = 2.5)
 
 ##############################################################################
 # plot: distribution of target measure for all combinations and models
