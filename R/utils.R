@@ -5,16 +5,45 @@ library(tidyr)
 
 # labellers
 cost_var_label = function(s){
-  paste0(ifelse(s == quote(costpar),"Max","Sum"),"(number of V evaluations)")
+  paste0(ifelse(
+    s == quote(costpar),
+    "Maximum",
+    "Total"
+  )," number of V evaluations")
 }
+mod_short_label = c(
+  "Banana"="Banana",
+  "Funnel"="Funnel",
+  "HierarchicalModel"="HierarchModel",
+  "MRNATrans"="MRNATrans",
+  "ThresholdWeibull"="ThreshWeibull", 
+  "XYModel"="XYModel"
+)
 labellers = labeller(
   cor = function(co){paste("Max. Corr. =", co)},
   gam = function(ga){paste0("γ = ",ga," (N ≈ ", round(2*as.double(ga)),"Λ)")},
   xps = function(xp){paste0("Smooth window ≈ ", xp,"N")},
-  nxps_bin = function(b){paste("Straight-line cost ∈",b)}
+  nxps_bin = function(b){paste("Straight-line cost ∈",b)},
+  cost_var = cost_var_label
 )
-log10_breaks=function(x) {
-  y=log10(x)
-  # n=min(5L,2+ceiling(diff(range(y))))
-  10^(pretty(y, 4, 2))
+# insane but it works: ask for many breaks, just use 2 in the interior
+log10_breaks=function(x){
+  lx=log10(x)
+  p=pretty(lx,8,8)
+  10^c(p[3],p[length(p)-2])
 }
+# impossible to get x.y10^z notation consistently. ggplot2 will not print y
+# when y=0!!!!
+gen_log10_labels=function(digits=1){
+  fstr = paste0("%.",digits,"fe%d")
+  function(x){
+    e = floor(log10(x))
+    m = x*10^-e
+    s = sprintf(fstr,m,e)
+    s
+  }
+}
+my_scale_y_log10 = function(digits=1){
+  scale_y_log10(breaks=log10_breaks,labels=gen_log10_labels(digits))
+}
+

@@ -1,5 +1,6 @@
 source("utils.R")
 library(gridExtra)
+library(cowplot)
 
 # load the latest consolidated file
 csvs = sort(
@@ -22,11 +23,16 @@ n_reps = dta %>%
 #######################################
 
 TE_min = 1e-4 # ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.52 # wiggle room to .5 limit. note: xi is tail index for number of visits to top level. recall: for a>0, xi < a => E[Z^(1/a)] < infty
-dta_is_valid = dta %>% 
+xi_max = 0.65 # wiggle room to .5 limit. note: xi is GPD tail index for number of visits to top level. recall: for a>0, xi < a => E[Z^(1/a)] < infty
+dta_mean_xi = dta %>% 
   group_by(fun,cor,gam,xpl,xps,mod) %>%
-  mutate(mean_xi = mean(xi, na.rm = TRUE), # NAs are due to runs that don't visit the top level
-         is_valid = (TE >= TE_min & n_vis_top>0 & mean_xi <= xi_max)) %>%
+  summarize(mean_xi = mean(xi, na.rm = TRUE),  # NAs are due to runs that don't visit the top level
+            min_TE = min(TE),
+            nreps = n()) %>% 
+  ungroup
+dta_is_valid = dta %>% 
+  inner_join(dta_mean_xi) %>%
+  mutate(is_valid = (TE >= TE_min & n_vis_top>0 & mean_xi <= xi_max)) %>%
   group_by(fun,cor,gam,xpl,xps) %>% 
   summarise(n_valid = sum(is_valid)) %>% 
   ungroup() %>%
@@ -61,51 +67,143 @@ cost_var = quote(costser)
 q_tgt    = 1.0
 
 # compute cost for each mod x config combination, find best config for each mod
-dta_agg_tgt=dta %>% 
-  inner_join(valid_combs) %>% 
-  mutate(tgt = eval(cost_var)) %>%
-  group_by(mod,fun,cor,gam,xpl,xps) %>% 
-  # compute aggregates over replications (seeds)
-  summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
-  ungroup() %>%
-  inner_join(
-    (.) %>% 
-      group_by(mod) %>%  
-      slice_min(agg_tgt,n=1,with_ties=FALSE) %>% 
-      select(min_agg_tgt=agg_tgt),
-    by="mod"
-  ) %>% 
-  mutate(regret = agg_tgt-min_agg_tgt) #%>% # using abs diff prioritizes harder models. ratio normalizes them
-  # group_by(mod) %>% slice_min(agg_tgt,n=3) %>% print(n=Inf)
-  
+gen_dta_agg_tgt = function(cvar){
+  dta %>% 
+    inner_join(valid_combs) %>% 
+    mutate(tgt = eval(cvar)) %>%
+    group_by(mod,fun,cor,gam,xpl,xps) %>% 
+    # compute aggregates over replications (seeds)
+    summarise(agg_tgt = quantile(tgt,q_tgt)) %>% 
+    ungroup() %>%
+    inner_join(
+      (.) %>% 
+        group_by(mod) %>%  
+        slice_min(agg_tgt,n=1,with_ties=FALSE) %>% 
+        select(min_agg_tgt=agg_tgt),
+      by="mod"
+    ) %>% 
+    mutate(regret_abs = agg_tgt-min_agg_tgt, # using abs diff prioritizes harder models
+           regret_rat = agg_tgt/min_agg_tgt) # using ratio normalizes them
+}
+
+# compute regrets
+dta_agg_tgt = gen_dta_agg_tgt(cost_var)
+
+# inspect 3 best configs per model
+dta_agg_tgt %>%  group_by(mod) %>% slice_min(agg_tgt,n=3) %>% print(n=Inf)
+
 # select the config with least regret
 summ = dta_agg_tgt %>% 
   group_by(fun,cor,gam,xpl,xps) %>% 
-  summarise(agg_regret=max(regret),
+  summarise(agg_regret=max(regret_abs),
             nmods = n()) %>% 
   arrange(agg_regret) %>% print
 
 # inspect config
-summ[1,] %>% inner_join(dta_agg_tgt) %>% arrange(desc(regret))
+summ[1,] %>% inner_join(dta_agg_tgt) %>% arrange(desc(regret_abs))
 
 ##############################################################################
-# plot: all correlations for fixed else
+# plot: gam, fix everything else
 ##############################################################################
 
-dta_agg_tgt %>% 
-  filter(gam== 3 & fun == "mean") %>% 
-  ggplot(aes(x = as.factor(cor), y = agg_tgt/min_agg_tgt)) +
-  geom_point() +
-  facet_wrap(~mod, labeller = labellers) +
+dta %>% 
+  inner_join(valid_combs) %>%
+  inner_join(summ[1,c("fun", "cor")], by=c("fun", "cor") ) %>%
+  ggplot(aes(x = as.factor(gam), y = eval(cost_var))) +
+  geom_boxplot() +
+  my_scale_y_log10 +
+  facet_wrap(~mod, labeller = labellers, scales="free_y") +
   theme_bw() +
   theme(
     legend.position = "bottom",
     legend.margin    = margin(t=-5),
+    strip.background = element_blank()
   )+
   labs(
-    x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
+    x = "Gamma correction",
     y = cost_var_label(cost_var)
   )
+
+ggsave("hyperparams_gam.pdf", width=6, height = 3, device = cairo_pdf) # device needed on Linux to print unicode correctly
+
+##############################################################################
+# plot: cor, fix everything else
+##############################################################################
+
+cor_levels = sort(unique(dta$cor))
+cor_labels = sprintf(ifelse(cor_levels >= 1, "F", ".%d"),as.integer(round(100*cor_levels)))
+dta %>% 
+  filter(cor>=0.8) %>% # can't fit more
+  inner_join(valid_combs) %>%
+  inner_join(summ[1,c("fun", "gam")], by=c("fun", "gam") ) %>%
+  mutate(is_fixed = ifelse(cor>=1,"Fixed","Tuned"),
+         fcor = factor(cor,cor_levels,labels=cor_labels,ordered=TRUE)) %>% 
+  ggplot(aes(x = fcor, y = eval(cost_var), color=is_fixed)) +
+  geom_boxplot(show.legend=FALSE) +
+  scale_color_manual(name="Exploration steps",values=c("red", "black"))+
+  my_scale_y_log10 +
+  facet_wrap(~mod, labeller = labellers, scales="free_y") +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.margin    = margin(t=-5),
+    strip.background = element_blank()
+  )+
+  labs(
+    x = "Maximum allowed autocorrelation",
+    y = cost_var_label(cost_var)
+  )
+
+ggsave("hyperparams_cor.pdf", width=6, height = 3)
+
+##############################################################################
+# plot: fun, fix everything else.
+# problem: the best mean (cor,gam) combination might be invalid for median
+# need to find one that exists for both
+##############################################################################
+
+# compute regrets, select the config with least regret
+cost_var_other = ifelse(cost_var==quote(costser),quote(costpar),quote(costser))
+summ_other = gen_dta_agg_tgt(cost_var_other) %>% 
+  group_by(fun,cor,gam,xpl,xps) %>% 
+  summarise(agg_regret=max(regret_abs),
+            nmods = n()) %>% 
+  arrange(agg_regret)
+
+make_fun_plot = function(plot_cost_var,with_strip=TRUE){
+  cost_var_name_short = ifelse(plot_cost_var==quote(costser),"Sum total","Maximum")
+  dta %>% 
+    inner_join(valid_combs) %>%
+    inner_join(
+      bind_rows(summ[1,],summ_other[1,])[,c("fun", "cor", "gam")],
+      by=c("fun", "cor", "gam") ) %>%
+    ggplot(aes(x = fun, y = eval(plot_cost_var))) +
+    geom_boxplot() +
+    scale_x_discrete(labels = c("mean"="Mean","median"="Med")) +
+    my_scale_y_log10(digits=0) +
+    coord_flip()+
+    facet_grid(
+      eval(cost_var_name_short)~mod, 
+      labeller = labeller(mod=mod_short_label), 
+      scales="free_x"
+    )+
+    theme_bw() +
+    {if(!with_strip){ theme(strip.text.x = element_blank())}}+
+    theme(
+      legend.position  = "bottom",
+      legend.margin    = margin(t=-5),
+      strip.background = element_blank(),
+      # panel.spacing    = unit(0, "lines"),
+      # strip.placement  = "outside",
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
+    )
+}
+p1 = make_fun_plot(cost_var)
+p2 = make_fun_plot(cost_var_other,FALSE)
+prop_p1 = 0.54
+p=plot_grid(p1, p2, align = "v", nrow=2,rel_heights = c(prop_p1, 1-prop_p1))
+ggsave("hyperparams_fun.pdf", p, width=6, height = 3)
 
 ##############################################################################
 # plot: distribution of target measure for all combinations and models
@@ -123,7 +221,7 @@ dta %>%
   ) +
   scale_color_discrete(name="Strategy",
                        labels=c("mean"="Mean", "median"="Median")) +
-  facet_grid(mod~gam, labeller = labellers, scales="free") +
+  facet_grid(mod~gam, labeller = labellers, scales="free", s) +
   theme_bw() +
   theme(
     legend.position = "bottom",
