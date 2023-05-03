@@ -10,10 +10,10 @@ include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks'
 workflow {
   // define the grid of parameters over which to run the experiments
   exps_ch = Channel.of('TE_ELE')
-  mods_ch = Channel.of('Challenger', 'XYModel', 'MRNATrans', 'HierarchicalModel')
+  mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel', 'Funnel', 'Banana', 'ThresholdWeibull')
   funs_ch = Channel.of('mean')
-  cors_ch = Channel.of(0.1, 0.25, 0.5, 0.75, 1) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
-  gams_ch = Channel.of(2.5, 5.0, 10.0, 20.0, 40.0)
+  cors_ch = Channel.of(0.1, 0.25, 0.5, 0.75, 0.95) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
+  gams_ch = Channel.of(2, 4, 8, 16, 32)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)
   seeds_ch= Channel.of(7634,805,1128,599,9766,5040,6523,9883,8405,5618,9924,3739,5404,7022,5301,8870,7456,3198,333,4594,2911,2764,4225,815,5427,65,1164,3509,7469,7627)

@@ -23,7 +23,7 @@ n_reps = dta %>%
 #######################################
 
 TE_min = 1e-4 # ntours(TE) truncates TE at this level, so configs with less than TE_min run less tours than they should
-xi_max = 0.65 # wiggle room to .5 limit. note: xi is GPD tail index for number of visits to top level. recall: for a>0, xi < a => E[Z^(1/a)] < infty
+xi_max = 0.70 # wiggle room to .5 limit. note: xi is GPD tail index for number of visits to top level. recall: for a>0, xi < a => E[Z^(1/a)] < infty
 dta_mean_xi = dta %>% 
   group_by(fun,cor,gam,xpl,xps,mod) %>%
   summarize(mean_xi = mean(xi, na.rm = TRUE),  # NAs are due to runs that don't visit the top level
@@ -107,10 +107,14 @@ summ[1,] %>% inner_join(dta_agg_tgt) %>% arrange(desc(regret_abs))
 ##############################################################################
 
 dta %>% 
-  inner_join(valid_combs) %>%
   inner_join(summ[1,c("fun", "cor")], by=c("fun", "cor") ) %>%
   ggplot(aes(x = as.factor(gam), y = eval(cost_var))) +
-  geom_boxplot() +
+  geom_boxplot(lwd=0.25) +
+  # geom_line(
+  #   data = inner_join(dta_agg_tgt,summ[1,c("fun", "cor")], by=c("fun", "cor") ),
+  #   aes(x = gam, y = agg_tgt),
+  #   linetype = "dotted"
+  # ) +
   my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
   theme_bw() +
@@ -131,7 +135,7 @@ ggsave("hyperparams_gam.pdf", width=6, height = 3, device = cairo_pdf) # device 
 ##############################################################################
 
 cor_levels = sort(unique(dta$cor))
-cor_labels = sprintf(ifelse(cor_levels >= 1, "F", ".%d"),as.integer(round(100*cor_levels)))
+cor_labels = sprintf(ifelse(cor_levels >= 1, "Fix", ".%d"),as.integer(round(100*cor_levels)))
 dta %>% 
   filter(cor>=0.8) %>% # can't fit more
   inner_join(valid_combs) %>%
@@ -139,7 +143,7 @@ dta %>%
   mutate(is_fixed = ifelse(cor>=1,"Fixed","Tuned"),
          fcor = factor(cor,cor_levels,labels=cor_labels,ordered=TRUE)) %>% 
   ggplot(aes(x = fcor, y = eval(cost_var), color=is_fixed)) +
-  geom_boxplot(show.legend=FALSE) +
+  geom_boxplot(lwd=0.25, show.legend=FALSE) +
   scale_color_manual(name="Exploration steps",values=c("red", "black"))+
   my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
@@ -171,7 +175,7 @@ summ_other = gen_dta_agg_tgt(cost_var_other) %>%
   arrange(agg_regret)
 
 make_fun_plot = function(plot_cost_var,bottom=FALSE){
-  cost_var_name_short = ifelse(plot_cost_var==quote(costser),"Sum total","Maximum")
+  cost_var_name_short = ifelse(plot_cost_var==quote(costser),"Serial","Parallel")
   dta %>% 
     inner_join(valid_combs) %>%
     inner_join(
@@ -196,12 +200,9 @@ make_fun_plot = function(plot_cost_var,bottom=FALSE){
             plot.margin = margin(0, 0, 5.5, 0, "pt"))
     }}+
     theme(
-      legend.position  = "bottom",
       legend.margin    = margin(t=-5),
       strip.background = element_blank(),
-      # panel.spacing    = unit(0, "lines"),
-      # strip.placement  = "outside",
-      axis.title.y = element_blank()
+      axis.title.y     = element_blank()
     ) +
     labs(y="Cost")
 }
