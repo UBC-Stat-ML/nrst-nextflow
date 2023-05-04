@@ -1,6 +1,4 @@
 source("utils.R")
-library(gridExtra)
-library(cowplot)
 
 # load the latest consolidated file
 csvs = sort(
@@ -117,12 +115,7 @@ dta %>%
   # ) +
   my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
-  theme_bw() +
-  theme(
-    legend.position = "bottom",
-    legend.margin    = margin(t=-5),
-    strip.background = element_blank()
-  )+
+  my_theme() +
   labs(
     x = "Gamma correction",
     y = cost_var_label(cost_var)
@@ -141,18 +134,13 @@ dta %>%
   inner_join(valid_combs) %>%
   inner_join(summ[1,c("fun", "gam")], by=c("fun", "gam") ) %>%
   mutate(is_fixed = ifelse(cor>=1,"Fixed","Tuned"),
-         fcor = factor(cor,cor_levels,labels=cor_labels,ordered=TRUE)) %>% 
+         fcor = format_cors(cor,decreasing=TRUE)) %>% 
   ggplot(aes(x = fcor, y = eval(cost_var), color=is_fixed)) +
   geom_boxplot(lwd=0.25, show.legend=FALSE) +
   scale_color_manual(name="Exploration steps",values=c("red", "black"))+
   my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
-  theme_bw() +
-  theme(
-    legend.position = "bottom",
-    legend.margin    = margin(t=-5),
-    strip.background = element_blank()
-  )+
+  my_theme() +
   labs(
     x = "Maximum allowed autocorrelation",
     y = cost_var_label(cost_var)
@@ -199,11 +187,8 @@ make_fun_plot = function(plot_cost_var,bottom=FALSE){
       theme(axis.title.x = element_blank(),
             plot.margin = margin(0, 0, 5.5, 0, "pt"))
     }}+
-    theme(
-      legend.margin    = margin(t=-5),
-      strip.background = element_blank(),
-      axis.title.y     = element_blank()
-    ) +
+    my_theme() +
+    theme(axis.title.y = element_blank()) +
     labs(y="Cost")
 }
 p1 = make_fun_plot(cost_var)

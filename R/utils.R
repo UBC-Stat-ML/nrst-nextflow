@@ -2,6 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(tidyr)
+library(cowplot)
 
 # labellers
 cost_var_label = function(s){
@@ -47,3 +48,19 @@ my_scale_y_log10 = function(digits=1){
   scale_y_log10(breaks=log10_breaks,labels=gen_log10_labels(digits))
 }
 
+# theme
+my_theme = function(){
+  theme_bw() +
+    theme(
+      legend.position = "bottom",
+      legend.margin    = margin(t=-5),
+      strip.background = element_blank()
+    )
+}
+
+# format correlations
+format_cors = function(cor,...){
+  cor_levels = sort(unique(cor), ...)
+  cor_labels = sprintf(ifelse(cor_levels >= 1, "Fix", ".%d"),as.integer(round(100*cor_levels)))
+  factor(cor,cor_levels,labels=cor_labels,ordered=TRUE)
+}
