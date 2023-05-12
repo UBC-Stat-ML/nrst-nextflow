@@ -6,11 +6,11 @@ library(cowplot)
 
 # labellers
 cost_var_label = function(s){
-  paste0(ifelse(
+  ifelse(
     s == quote(costpar),
     "Maximum",
-    "Total"
-  )," number of V evaluations")
+    "Serial cost to bound M.C. error"
+  )
 }
 mod_short_label = c(
   "Banana"="Banana",

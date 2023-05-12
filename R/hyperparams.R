@@ -127,17 +127,15 @@ ggsave("hyperparams_gam.pdf", width=6, height = 3, device = cairo_pdf) # device 
 # plot: cor, fix everything else
 ##############################################################################
 
-cor_levels = sort(unique(dta$cor))
-cor_labels = sprintf(ifelse(cor_levels >= 1, "Fix", ".%d"),as.integer(round(100*cor_levels)))
 dta %>% 
   filter(cor>=0.8) %>% # can't fit more
   inner_join(valid_combs) %>%
   inner_join(summ[1,c("fun", "gam")], by=c("fun", "gam") ) %>%
   mutate(is_fixed = ifelse(cor>=1,"Fixed","Tuned"),
-         fcor = format_cors(cor,decreasing=TRUE)) %>% 
+         fcor = format_cors(cor)) %>% 
   ggplot(aes(x = fcor, y = eval(cost_var), color=is_fixed)) +
   geom_boxplot(lwd=0.25, show.legend=FALSE) +
-  scale_color_manual(name="Exploration steps",values=c("red", "black"))+
+  scale_color_manual(name="Exploration steps",values=c("blue", "black"))+
   my_scale_y_log10() +
   facet_wrap(~mod, labeller = labellers, scales="free_y") +
   my_theme() +
@@ -180,6 +178,7 @@ make_fun_plot = function(plot_cost_var,bottom=FALSE){
       scales="free_x"
     )+
     theme_bw() +
+    my_theme() +
     {if(bottom){
       theme(strip.text.x = element_blank(),
             plot.margin = margin(0, 0, 0, 0, "pt"))
@@ -187,7 +186,6 @@ make_fun_plot = function(plot_cost_var,bottom=FALSE){
       theme(axis.title.x = element_blank(),
             plot.margin = margin(0, 0, 5.5, 0, "pt"))
     }}+
-    my_theme() +
     theme(axis.title.y = element_blank()) +
     labs(y="Cost")
 }

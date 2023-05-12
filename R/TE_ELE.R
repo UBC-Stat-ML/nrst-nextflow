@@ -1,5 +1,4 @@
 source("utils.R")
-library(gridExtra)
 
 # load the latest consolidated file
 csvs = sort(
@@ -11,7 +10,8 @@ csvs = sort(
 dta  = read.csv(csvs[1])
 
 ##############################################################################
-# for each model, get best estimate of TE_ELE
+# for each model, get best estimate of TE_ELE, which occurs for the lowest
+# correlation and highest gam
 ##############################################################################
 
 TE_ELEs = dta %>% 
@@ -36,7 +36,7 @@ dta %>%
   geom_tile() +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
-  scale_fill_viridis(name="TE ratio")+
+  scale_fill_continuous(type = "viridis") +
   facet_wrap(~mod, labeller = labellers,nrow=2)+#, scales = "free_y") +
   my_theme() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),

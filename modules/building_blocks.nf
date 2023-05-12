@@ -13,6 +13,7 @@ process runExp {
   label 'cluster_full_job'
   cpus  { workflow.profile == 'standard' ? 1 : 4 }
   memory { workflow.scriptName == 'TE_ELE.nf' ? 8.GB : 4.GB }
+  time { workflow.scriptName.contains('bench') ? '30m' : '3h' }
   input:
     path jlenv
     each exper
