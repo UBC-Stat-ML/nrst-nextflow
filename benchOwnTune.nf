@@ -9,6 +9,7 @@ include { setupEnv; runExp; collectAndProcess } from './modules/building_blocks'
 
 workflow {
   // define the grid of parameters over which to run the experiments
+  sams_ch = Channel.of('NRST,'GT95','FBDR','SH16')
   exps_ch = Channel.of('benchOwnTune')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel', 'Funnel', 'Banana', 'ThresholdWeibull')
   funs_ch = Channel.of('mean')
@@ -20,7 +21,7 @@ workflow {
 
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
-  files_ch = runExp(jlenv_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpls_ch, xpss_ch, seeds_ch)
+  files_ch = runExp(jlenv_ch, sams_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpls_ch, xpss_ch, seeds_ch)
   collectAndProcess(files_ch.collect(), rScriptsDir_ch)
 }
 
