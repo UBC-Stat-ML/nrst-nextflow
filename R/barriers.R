@@ -33,14 +33,15 @@ for (i in seq_along(plots)) {
     theme(axis.title   = element_blank(),
           plot.title   = element_text(hjust = 0.5,size=9),
           panel.border = element_blank(),
-          axis.line    = element_line(color = 'black', size = 0.2)) +
+          axis.line    = element_line(color = 'black', size = 0.2),
+          plot.margin  = margin(0, 2.5, 0, 2.5)) +
     labs(title = mods[i])
 }
 plot_grid(plotlist=plots) + 
-  draw_plot_label(label = "Grid points", x = 0.5, y = 0.05, 
+  draw_plot_label(label = "Grid points", x = 0.5, y = 0.0, 
                   fontface="plain", hjust = 0.1, size = 11) +
-  draw_plot_label(label = "Tempering barrier", angle = 90, x = -0.03, y = 0.33, 
+  draw_plot_label(label = "Tempering barrier", angle = 90, x = -0.04, y = 0.33, 
                   fontface="plain", hjust = 0.1, size = 11) +
-  theme(plot.margin = margin(0, 0, 5, 15)) # from top clockwise
+  theme(plot.margin = margin(0, 0, 15, 15)) # from top clockwise
 
 ggsave("barriers.pdf", width=6, height = 3)
