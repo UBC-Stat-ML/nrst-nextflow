@@ -49,15 +49,17 @@ pbwt = dta_plot %>%
   ggplot() +
   geom_line(aes(x = rs, y=ws, color=fnw, linetype=fnw))+#,linewidth=1) +
   geom_point(data=dta_et, aes(x=et, color=fnw), y = 0, size = 2, show.legend = FALSE)+
+  annotate("text", x = 16.2, y = 500, label = "Available workers", size=3.2)+
   scale_color_manual(name="", values=seaborn_cb6) + 
   scale_linetype_manual(name="", values=seq(nrow(dta_et),1,by=-1)) + 
   my_theme() +
   my_no_upper_right_border_thm() +
   theme(
-    legend.position=c(.75,.75),
+    legend.position=c(.75,.58),
     legend.key = element_blank(),
     legend.background=element_blank(),
-    legend.spacing.y = unit(-.2, 'cm')
+    legend.spacing.y = unit(-.3, 'cm'),
+    legend.title = element_blank()
   ) +
   labs(
     x = "Elapsed time (hours)",
@@ -72,6 +74,7 @@ pbwt = dta_plot %>%
 nws = sort(unique(dta_wtc$nw))
 idxs = seq(1, length(nws), by=2)
 breaks = nws[idxs]
+cost_labs = c("clam"="CPU time", "chpc"="Standard")
 
 pdta = dta_wtc %>%
   pivot_longer(!c(nw, rep), names_to = "measure") %>% 
@@ -96,29 +99,35 @@ pet = pdta %>%
     y = "Running time (hr)"
   )
 pc = pdta %>% 
-  filter(measure == "chpc") %>% 
+  filter(measure != "et") %>% 
   pivot_longer(!c(nw,measure)) %>%
   mutate(value_trans = value / min(value)) %>% 
   select(-value) %>% 
   pivot_wider(names_from = name, values_from = value_trans) %>% 
-  ggplot(aes(x = nw))+#, color = measure, linetype = measure)) +
+  ggplot(aes(x = nw, color = measure, linetype = measure)) +
   geom_line(aes(y=low), linetype = "dotted") +
   geom_line(aes(y=mid)) +
   geom_line(aes(y=hi), linetype = "dotted") +
-  # scale_color_discrete(name="", labels=c("clam"="Fair", "chpc"="Standard")) +
-  # scale_linetype_discrete(name="", labels=c("clam"="Fair", "chpc"="Standard")) +
+  annotate("text", x = 4.5, y = 28, label = "Costing", size=3.2)+
+  scale_color_discrete(name="", labels=cost_labs) +
+  scale_linetype_manual(name="", labels=cost_labs, values=c("solid", "dashed")) +
   scale_x_log10(breaks=breaks, labels=as.character(breaks)) +
   scale_y_log10()+
   my_theme() +
   my_no_upper_right_border_thm()+
   theme(
-    legend.position=c(.3,.75),
+    legend.position=c(.3,.6),
     legend.key = element_blank(),
-    legend.background=element_blank()
+    legend.background=element_blank(),
+    legend.spacing.y = unit(-0.3, 'cm'),
+    legend.title = element_blank()
   )+
+  guides(color=guide_legend(byrow=TRUE)) +
   labs(
     x = "Available workers",
     y = "Cost"
   )
+
 plt = plot_grid(phist, pbwt, pet, pc)
 ggsave("workers_time_cost.pdf", plot=plt, width=6, height = 3.2, device = cairo_pdf) # device needed on Linux to print unicode correctly
+
