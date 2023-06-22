@@ -44,6 +44,16 @@ gen_log10_labels=function(digits=1){
     s
   }
 }
+UNICODE_EXPS=c("0"="\u2070","1"="\u00b9","2"="\u00b2","3"="\u00b3","4"="\u2074","5"="\u2075","6"="\u2076","7"="\u2077","8"="\u2078","9"="\u2079")
+gen_log10_labels_utf=function(digits=1){
+  fstr = paste0("%.",digits,"f·10%s")
+  function(x){
+    e = floor(log10(x))
+    m = x*10^-e
+    s = sprintf(fstr,m,UNICODE_EXPS[as.character(e)])
+    s
+  }
+}
 my_scale_y_log10 = function(digits=1){
   scale_y_log10(breaks=log10_breaks,labels=gen_log10_labels(digits))
 }
