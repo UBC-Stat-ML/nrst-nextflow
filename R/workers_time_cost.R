@@ -49,6 +49,7 @@ pbwt = dta_plot %>%
   ggplot() +
   geom_line(aes(x = rs, y=ws, color=fnw, linetype=fnw))+#,linewidth=1) +
   geom_point(data=dta_et, aes(x=et, color=fnw), y = 0, size = 2, show.legend = FALSE)+
+  # geom_point(x=dta_bwt %>% filter(ws==0) %>% pull(rs) %>% min, y = 0, color="black", size = 2, shape="x",show.legend = FALSE)+
   annotate("text", x = 16.2, y = 500, label = "Available workers", size=3.2)+
   scale_color_manual(name="", values=seaborn_cb6) + 
   scale_linetype_manual(name="", values=seq(nrow(dta_et),1,by=-1)) + 
@@ -79,11 +80,9 @@ cost_labs = c("clam"="CPU time", "chpc"="Standard")
 pdta = dta_wtc %>%
   pivot_longer(!c(nw, rep), names_to = "measure") %>% 
   group_by(nw,measure) %>% 
-  summarise(mid = mean(value), std = sd(value)) %>% 
-  ungroup() %>% 
-  mutate(low = mid-std, hi = mid+std) %>% 
-  select(-std)
-
+  summarise(mid = mean(value), low = quantile(value, 0.1), hi = quantile(value, 0.9)) %>% 
+  ungroup()
+# lm(log(mid) ~ log(nw),filter(pdta,measure=="et" & nw <= 32)) ----> in the nw->1 regime, et ~ 1/nw
 pet = pdta %>% 
   filter(measure=="et") %>% 
   ggplot(aes(x = nw)) +
@@ -101,7 +100,7 @@ pet = pdta %>%
 pc = pdta %>% 
   filter(measure != "et") %>% 
   pivot_longer(!c(nw,measure)) %>%
-  mutate(value_trans = value / min(value)) %>% 
+  mutate(value_trans = value / min(value)) %>% # standardize cost (they're only known up to proportionality)
   select(-value) %>% 
   pivot_wider(names_from = name, values_from = value_trans) %>% 
   ggplot(aes(x = nw, color = measure, linetype = measure)) +
@@ -125,7 +124,7 @@ pc = pdta %>%
   guides(color=guide_legend(byrow=TRUE)) +
   labs(
     x = "Available workers",
-    y = "Cost"
+    y = "Cost (normalized)"
   )
 
 plt = plot_grid(phist, pbwt, pet, pc)
