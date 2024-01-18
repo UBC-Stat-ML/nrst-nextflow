@@ -35,8 +35,6 @@ phist = dta_ts %>%
 # plot: busy workers over time
 ##############################################################################
 
-seaborn_cb6 = c("#0173B2", "#029E73", "#D55E00", "#CC78BC", "#ECE133", "#56B4E9")
-
 dta_plot = dta_bwt %>% 
   filter(between(nw, 32, 512)) %>% 
   mutate(fnw = factor(nw))
@@ -75,7 +73,7 @@ pbwt = dta_plot %>%
 nws = sort(unique(dta_wtc$nw))
 idxs = seq(1, length(nws), by=2)
 breaks = nws[idxs]
-cost_labs = c("clam"="CPU time", "chpc"="Standard")
+cost_labs = c("clam"="Cloud", "chpc"="HPC")
 
 pdta = dta_wtc %>%
   pivot_longer(!c(nw, rep), names_to = "measure") %>% 

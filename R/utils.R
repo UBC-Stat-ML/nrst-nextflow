@@ -4,6 +4,9 @@ library(scales)
 library(tidyr)
 library(cowplot)
 
+# custom palettes
+seaborn_cb6 = c("#0173B2", "#029E73", "#D55E00", "#CC78BC", "#ECE133", "#56B4E9") # seaborn colorblind 6
+
 # labellers
 cost_var_label = function(s){
   ifelse(

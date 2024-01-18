@@ -177,7 +177,6 @@ make_fun_plot = function(plot_cost_var,bottom=FALSE){
       labeller = labeller(mod=mod_short_label), 
       scales="free_x"
     )+
-    theme_bw() +
     my_theme() +
     {if(bottom){
       theme(strip.text.x = element_blank(),
@@ -203,25 +202,27 @@ ggsave("hyperparams_fun.pdf", p, width=6, height = 2.5)
 dta %>% 
   filter(xpl==summ$xpl[1] & xps==summ$xps[1]) %>% 
   inner_join(valid_combs) %>%
-  ggplot(aes(x = as.factor(cor), y = eval(cost_var), color = fun)) +
-  geom_boxplot() +
-  scale_y_log10(
-    breaks = log10_breaks,
-    labels = scales::trans_format("log10", scales::label_math(format=function(x){sprintf("%.1f",x)}))
-  ) +
+  mutate(fcor = format_cors(cor)) %>% 
+  ggplot(aes(x = fcor, y = eval(cost_var), color = fun)) +
+  geom_boxplot(lwd=0.25)+#, show.legend=FALSE) +
+  my_scale_y_log10(digits=0) +
+  # scale_y_log10(
+  #   breaks = log10_breaks,
+  #   labels = scales::trans_format("log10", scales::label_math(format=function(x){sprintf("%.1f",x)}))
+  # ) +
   scale_color_discrete(name="Strategy",
                        labels=c("mean"="Mean", "median"="Median")) +
-  facet_grid(mod~gam, labeller = labellers, scales="free", s) +
-  theme_bw() +
+  facet_grid(mod~gam, labeller = labellers, scales="free") +
+  my_theme() +
   theme(
     legend.position = "bottom",
     legend.margin    = margin(t=-5),
     )+
   labs(
-    x = "Correlation bound (<1) or Number of fixed expl. steps (>=1)",
+    x = "Maximum allowed autocorrelation",
     y = cost_var_label(cost_var)
   )
-ggsave("hyperparams_all.pdf", width=6, height = 6, device = cairo_pdf) # device needed on Linux to print unicode correctly
+ggsave("hyperparams_all.pdf", width=7, height = 7.2, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
 ##############################################################################
 # correlation costset v. costpar: very uncorrelated within a combination
