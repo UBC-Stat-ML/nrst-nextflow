@@ -1,14 +1,19 @@
-source("utils.R")
+# load utility functions
+script_path = commandArgs(trailingOnly=TRUE)
+in_workflow = length(script_path) > 0
+if(!in_workflow) script_path = "."
+source(file.path(script_path, "utils.R"))
 
 # load the latest consolidated file
-csvs = list.files(path       = file.path("..","deliverables"),
+data_path = ifelse(in_workflow, ".", file.path("..","deliverables"))
+csvs = list.files(path       = data_path,
                   pattern    = '^NRSTExp_benchmark_\\d+.csv$',
                   full.names = TRUE)
 dta_our = read.csv(max(csvs)) %>% 
   mutate(tuning = "Ours")
 
 # load the latest consolidated file
-csvs = list.files(path       = file.path("..","deliverables"),
+csvs = list.files(path       = data_path,
                   pattern    = '^NRSTExp_benchOwnTune_\\d+.csv$',
                   full.names = TRUE)
 dta_own = read.csv(max(csvs)) %>% 
@@ -36,6 +41,6 @@ plt = dta %>%
     x = "Sampler",
     y = cost_var_label(cost_var)
   )
-plt
+# plt
 ggsave("benchmark.pdf", plot = plt, width=6, height = 3, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
