@@ -1,7 +1,12 @@
-source("utils.R")
+# load utility functions
+script_path = commandArgs(trailingOnly=TRUE)
+in_workflow = length(script_path) > 0
+if(!in_workflow) script_path = "."
+source(file.path(script_path, "utils.R"))
 
 # load the latest consolidated file
-csvs = list.files(path       = file.path("..","deliverables"),
+data_path = ifelse(in_workflow, ".", file.path("..","deliverables"))
+csvs = list.files(path       = data_path,
                   pattern    = 'barriers.csv',
                   full.names = TRUE)
 dta  = read.csv(max(csvs))
@@ -22,7 +27,7 @@ for (i in seq_along(plots)) {
   f    = splinefun(sdta$beta,sdta$Lambda,method="mono")
   L    = sdta$Lambda[length(sdta$Lambda)]
   Lflr = floor(L*10)/10
-  plots[[i]] = sdta %>% 
+  plots[[i]] = sdta %>%
     ggplot(aes(x=beta,y=Lambda)) +
     geom_function(color=c1,fun=f) +
     geom_errorbarh(aes(xmin=0,xmax=beta),height=0,color=c1,size=0.25)+#,linetype="dotted"
@@ -38,11 +43,11 @@ for (i in seq_along(plots)) {
           plot.margin  = margin(0, 2.5, 0, 2.5)) +
     labs(title = mods[i])
 }
-plot_grid(plotlist=plots) + 
-  draw_plot_label(label = "Inverse temperature", x = 0.425, y = 0.0, 
+p = plot_grid(plotlist=plots) +
+  draw_plot_label(label = "Inverse temperature", x = 0.425, y = 0.0,
                   fontface="plain", hjust = 0.1, size = 11) +
-  draw_plot_label(label = "Tempering barrier", angle = 90, x = -0.04, y = 0.33, 
+  draw_plot_label(label = "Tempering barrier", angle = 90, x = -0.04, y = 0.33,
                   fontface="plain", hjust = 0.1, size = 11) +
   theme(plot.margin = margin(0, 0, 15, 15)) # from top clockwise
 
-ggsave("barriers.pdf", width=6, height = 3)
+ggsave("barriers.pdf", p, width=6, height = 3)

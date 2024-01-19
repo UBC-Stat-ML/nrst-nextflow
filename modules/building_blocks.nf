@@ -1,4 +1,5 @@
 process setupEnv {  
+  debug 'true'
   label 'local_job'
   input:
     path jlscdir
