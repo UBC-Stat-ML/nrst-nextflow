@@ -1,8 +1,13 @@
-source("utils.R")
+# load utility functions
+script_path = commandArgs(trailingOnly=TRUE)
+in_workflow = length(script_path) > 0
+if(!in_workflow) script_path = "."
+source(file.path(script_path, "utils.R"))
 
 # load the latest consolidated file
+data_path = ifelse(in_workflow, ".", file.path("..","deliverables"))
 csvs = sort(
-  list.files(path       = file.path("..","deliverables"),
+  list.files(path       = data_path,
              pattern    = '^NRSTExp_TE_ELE_\\d+.csv$',
              full.names = TRUE),
   decreasing=TRUE
@@ -24,7 +29,7 @@ TE_ELEs = dta %>%
 # plot TE versus gam and cor
 ##############################################################################
 
-dta %>% 
+p = dta %>% 
   mutate(fcor = format_cors(cor),#,decreasing=TRUE),
          fgam = as.factor(gam)) %>%
   group_by(fcor,fgam,mod) %>%
@@ -45,4 +50,4 @@ dta %>%
     x = "Maximum allowed autocorrelation",
     y = "Gamma correction"
   )
-ggsave("TE_ELE.pdf", width=4.5, height = 3)
+ggsave("TE_ELE.pdf", p, width=4.5, height = 3)

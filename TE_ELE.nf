@@ -13,7 +13,7 @@ workflow {
   exps_ch = Channel.of('TE_ELE')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel', 'Funnel', 'Banana', 'ThresholdWeibull')
   funs_ch = Channel.of('mean')
-  cors_ch = Channel.of(0.1, 0.25, 0.5, 0.75, 0.95) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
+  cors_ch = Channel.of(0.1, 0.25, 0.5, 0.75, 0.95)
   gams_ch = Channel.of(2, 4, 8, 16, 32)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)
@@ -22,8 +22,21 @@ workflow {
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
   files_ch = runExp(jlenv_ch, sams_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpls_ch, xpss_ch, seeds_ch)
-  collectAndProcess(files_ch.collect(), rScriptsDir_ch)
+  csv_file = collectAndProcess(files_ch.collect(), rScriptsDir_ch)
+  TE_ELE_plot(csv_file, rScriptsDir_ch)
 }
 
-
+process TE_ELE_plot {
+  //debug 'true'
+  label 'cluster_light_job'
+  publishDir params.deliverableDir, mode: 'copy', overwrite: true
+  input:
+    path csv_file
+    path Rdir
+  output:
+    path '*.pdf'
+  """
+  Rscript ${Rdir}/TE_ELE.R ${Rdir}
+  """
+}
 
