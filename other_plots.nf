@@ -16,36 +16,44 @@ workflow {
   // Figure 2: barriers
   barrier_data = barrierData(jlenv_ch)
   barrierPlot(barrier_data, rScriptsDir_ch)
+  
+  // Figure 5: workers versus time and cost analysis
+  wtc_data = workersTimeCostData(jlenv_ch)
+  workersTimeCostPlot(wtc_data, rScriptsDir_ch)  
 }
 
+//// Index process
+
 process indexProcessPlot {
-  debug 'true'
-  label 'local_job'
+  //debug 'true'
+  label 'cluster_light_job'
   publishDir params.deliverableDir, mode: 'copy', overwrite: true
   input:
     path jlenv
   output:
     path '*.pdf'
   """
-  julia --project=$jlenv -e 'using NRSTExp; gen_iproc_plots()'
+  julia --project=$jlenv -e 'using NRSTExp; gen_iproc_plots(); println("done!"); exit()'
   """
 }
 
+//// Barriers
+
 process barrierData {
-  debug 'true'
-  label 'local_job'
+  //debug 'true'
+  label 'cluster_light_job'
   input:
     path jlenv
   output:
     path '*.csv'
   """
-  julia --project=$jlenv -e 'using NRSTExp; NRSTExp.get_barrier_df()'
+  julia --project=$jlenv -t 2 -e 'using NRSTExp; NRSTExp.get_barrier_df()'
   """
 }
 
 process barrierPlot {
-  debug 'true'
-  label 'local_job'
+  //debug 'true'
+  label 'cluster_light_job'
   publishDir params.deliverableDir, mode: 'copy', overwrite: true
   input:
     path barrier_data
@@ -57,4 +65,30 @@ process barrierPlot {
   """
 }
 
+//// Workers versus time and cost analysis
 
+process workersTimeCostData {
+  //debug 'true'
+  label 'cluster_light_job'
+  input:
+    path jlenv
+  output:
+    path '*.*sv'
+  """
+  julia --project=$jlenv -e 'using NRSTExp; NRSTExp.workers_time_cost_analysis()'
+  """
+}
+
+process workersTimeCostPlot {
+  //debug 'true'
+  label 'cluster_light_job'
+  publishDir params.deliverableDir, mode: 'copy', overwrite: true
+  input:
+    path barrier_data
+    path Rdir
+  output:
+    path '*.pdf'
+  """
+  Rscript ${Rdir}/workers_time_cost.R ${Rdir}
+  """
+}

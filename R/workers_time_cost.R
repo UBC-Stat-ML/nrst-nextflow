@@ -1,9 +1,14 @@
-source("utils.R")
+# load utility functions
+script_path = commandArgs(trailingOnly=TRUE)
+in_workflow = length(script_path) > 0
+if(!in_workflow) script_path = "."
+source(file.path(script_path, "utils.R"))
 
 # load data
-dta_ts  = read.csv(file.path("..","deliverables","raw_times.tsv"), header = FALSE, col.names = "time")
-dta_bwt = read.csv(file.path("..","deliverables","busy_workers_over_time.csv"))
-dta_wtc = read.csv(file.path("..","deliverables","workers_time_cost.csv"))
+data_path = ifelse(in_workflow, ".", file.path("..","deliverables"))
+dta_ts  = read.csv(file.path(data_path,"raw_times.tsv"), header = FALSE, col.names = "time")
+dta_bwt = read.csv(file.path(data_path,"busy_workers_over_time.csv"))
+dta_wtc = read.csv(file.path(data_path,"workers_time_cost.csv"))
 
 my_no_upper_right_border_thm = function(){
   theme(
