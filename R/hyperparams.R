@@ -1,8 +1,13 @@
-source("utils.R")
+# load utility functions
+script_path = commandArgs(trailingOnly=TRUE)
+in_workflow = length(script_path) > 0
+if(!in_workflow) script_path = "."
+source(file.path(script_path, "utils.R"))
 
 # load the latest consolidated file
+data_path = ifelse(in_workflow, ".", file.path("..","deliverables"))
 csvs = sort(
-  list.files(path       = file.path("..","deliverables"),
+  list.files(path       = data_path,
              pattern    = '^NRSTExp_hyperparams_\\d+.csv$',
              full.names = TRUE),
   decreasing=TRUE
@@ -104,7 +109,7 @@ summ[1,] %>% inner_join(dta_agg_tgt) %>% arrange(desc(regret_abs))
 # plot: gam, fix everything else
 ##############################################################################
 
-dta %>% 
+p = dta %>% 
   inner_join(summ[1,c("fun", "cor")], by=c("fun", "cor") ) %>%
   ggplot(aes(x = as.factor(gam), y = eval(cost_var))) +
   geom_boxplot(lwd=0.25) +
@@ -121,13 +126,13 @@ dta %>%
     y = cost_var_label(cost_var)
   )
 
-ggsave("hyperparams_gam.pdf", width=6, height = 3, device = cairo_pdf) # device needed on Linux to print unicode correctly
+ggsave("hyperparams_gam.pdf", p, width=6, height = 3, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
 ##############################################################################
 # plot: cor, fix everything else
 ##############################################################################
 
-dta %>% 
+p = dta %>% 
   filter(cor>=0.8) %>% # can't fit more
   inner_join(valid_combs) %>%
   inner_join(summ[1,c("fun", "gam")], by=c("fun", "gam") ) %>%
@@ -144,7 +149,7 @@ dta %>%
     y = cost_var_label(cost_var)
   )
 
-ggsave("hyperparams_cor.pdf", width=6, height = 3)
+ggsave("hyperparams_cor.pdf", p, width=6, height = 3)
 
 ##############################################################################
 # plot: fun, fix everything else.
@@ -199,7 +204,7 @@ ggsave("hyperparams_fun.pdf", p, width=6, height = 2.5)
 ##############################################################################
 
 # note: fixes xpl and xps
-dta %>% 
+p = dta %>% 
   filter(xpl==summ$xpl[1] & xps==summ$xps[1]) %>% 
   inner_join(valid_combs) %>%
   mutate(fcor = format_cors(cor)) %>% 
@@ -222,63 +227,63 @@ dta %>%
     x = "Maximum allowed autocorrelation",
     y = cost_var_label(cost_var)
   )
-ggsave("hyperparams_all.pdf", width=7, height = 7.2, device = cairo_pdf) # device needed on Linux to print unicode correctly
+ggsave("hyperparams_all.pdf", p, width=7, height = 7.2, device = cairo_pdf) # device needed on Linux to print unicode correctly
 
-##############################################################################
-# correlation costset v. costpar: very uncorrelated within a combination
-##############################################################################
-
-mods  = unique(dta$mod)
-plist = vector("list",length(mods))
-for(i in seq_along(plist)){
-  # i=1
-  plist[[i]] = dta %>% 
-    filter(mod == mods[i] & xps == 0.1 & fun == "median") %>% 
-    inner_join(valid_combs) %>% 
-    ggplot(aes(x = costser, y = costpar)) +
-    geom_point() +
-    scale_x_log10() +
-    scale_y_log10() +
-    scale_color_discrete(name="Strategy",
-                         labels=c("mean"="Mean", "median"="Median")) +
-    facet_grid(gam ~ cor, labeller = labellers, scales="free") +
-    theme_bw() +
-    # {if(i<length(mods)) {theme(legend.position = "none")}} +
-    labs(
-      x = "Correlation bound",
-      y = "max(total exploration steps)",
-      title=mods[i]
-    )
-}
-grid.arrange(grobs=plist,nrow=1)
-
-##############################################################################
-# summarizing (gam,cor,xps) with unique measure of total nexpls in perfect run
-# TODO: replace estimator with proper nexpls when they are available
-##############################################################################
-
-# bin total nexpls
-nexps_dta = dta %>%
-  group_by(mod, cor, gam, xps) %>% 
-  summarise(nexpls = mean(N*costser/rtser)) %>% # TODO: replace with actual data
-  group_by(mod) %>% 
-  mutate(nxps_bin = cut(nexpls,breaks = 5)) %>% 
-  ungroup
-
-plist = vector("list",length(mods))
-for(i in seq_along(plist)){
-  plist[[i]] = dta %>% 
-    filter(xps == 0.01 & mod == mods[i]) %>% 
-    inner_join(nexps_dta) %>% 
-    ggplot(aes(x = N, y = TE/costpar)) +
-    geom_point() +
-    facet_wrap(~ nxps_bin,ncol=1, labeller = labellers, scales="free_y") +
-    theme_bw() +
-    labs(
-      x = "Size of the grid",
-      y = "TE/max(number of V(x) evals.)",
-      title=mods[i]
-    )
-}
-grid.arrange(grobs=plist,nrow=1)
-
+# ##############################################################################
+# # correlation costset v. costpar: very uncorrelated within a combination
+# ##############################################################################
+# 
+# mods  = unique(dta$mod)
+# plist = vector("list",length(mods))
+# for(i in seq_along(plist)){
+#   # i=1
+#   plist[[i]] = dta %>% 
+#     filter(mod == mods[i] & xps == 0.1 & fun == "median") %>% 
+#     inner_join(valid_combs) %>% 
+#     ggplot(aes(x = costser, y = costpar)) +
+#     geom_point() +
+#     scale_x_log10() +
+#     scale_y_log10() +
+#     scale_color_discrete(name="Strategy",
+#                          labels=c("mean"="Mean", "median"="Median")) +
+#     facet_grid(gam ~ cor, labeller = labellers, scales="free") +
+#     theme_bw() +
+#     # {if(i<length(mods)) {theme(legend.position = "none")}} +
+#     labs(
+#       x = "Correlation bound",
+#       y = "max(total exploration steps)",
+#       title=mods[i]
+#     )
+# }
+# grid.arrange(grobs=plist,nrow=1)
+# 
+# ##############################################################################
+# # summarizing (gam,cor,xps) with unique measure of total nexpls in perfect run
+# # TODO: replace estimator with proper nexpls when they are available
+# ##############################################################################
+# 
+# # bin total nexpls
+# nexps_dta = dta %>%
+#   group_by(mod, cor, gam, xps) %>% 
+#   summarise(nexpls = mean(N*costser/rtser)) %>% # TODO: replace with actual data
+#   group_by(mod) %>% 
+#   mutate(nxps_bin = cut(nexpls,breaks = 5)) %>% 
+#   ungroup
+# 
+# plist = vector("list",length(mods))
+# for(i in seq_along(plist)){
+#   plist[[i]] = dta %>% 
+#     filter(xps == 0.01 & mod == mods[i]) %>% 
+#     inner_join(nexps_dta) %>% 
+#     ggplot(aes(x = N, y = TE/costpar)) +
+#     geom_point() +
+#     facet_wrap(~ nxps_bin,ncol=1, labeller = labellers, scales="free_y") +
+#     theme_bw() +
+#     labs(
+#       x = "Size of the grid",
+#       y = "TE/max(number of V(x) evals.)",
+#       title=mods[i]
+#     )
+# }
+# grid.arrange(grobs=plist,nrow=1)
+# 

@@ -13,7 +13,7 @@ workflow {
   exps_ch = Channel.of('hyperparams')
   mods_ch = Channel.of('XYModel', 'MRNATrans', 'HierarchicalModel', 'Funnel', 'Banana', 'ThresholdWeibull')
   funs_ch = Channel.of('mean', 'median')
-  cors_ch = Channel.of(0.75, 0.80, 0.85, 0.90, 0.95, 3) // hack: cor>=1 gets interpreted as setting fixed nexpl=cor
+  cors_ch = Channel.of(0.75, 0.80, 0.85, 0.90, 0.95, 3) // note: cor>=1 gets interpreted as setting fixed nexpl=cor
   gams_ch = Channel.of(1, 2, 3, 4, 5)
   xpls_ch = Channel.of('SSSO')
   xpss_ch = Channel.of(0.00001)
@@ -22,8 +22,21 @@ workflow {
   // run process
   jlenv_ch = setupEnv(jlScriptsDir_ch, rScriptsDir_ch)
   files_ch = runExp(jlenv_ch, sams_ch, exps_ch, mods_ch, funs_ch, cors_ch, gams_ch, xpls_ch, xpss_ch, seeds_ch)
-  collectAndProcess(files_ch.collect(), rScriptsDir_ch)
+  csv_file = collectAndProcess(files_ch.collect(), rScriptsDir_ch)
+  hyperparamsPlot(csv_file, rScriptsDir_ch)
 }
 
-
+process hyperparamsPlot {
+  debug 'true'
+  label 'cluster_light_job'
+  publishDir params.deliverableDir, mode: 'copy', overwrite: true
+  input:
+    path csv_file
+    path Rdir
+  output:
+    path '*.pdf'
+  """
+  Rscript ${Rdir}/hyperparams.R ${Rdir}
+  """
+}
 
